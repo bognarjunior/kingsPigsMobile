@@ -1,0 +1,17 @@
+{
+  "name": "kings-and-pigs-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "2D platformer Kings and Pigs built with Phaser 3 and packaged as a React Native + Expo app.",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "game:dev": "pnpm --filter game dev",
+    "game:build": "pnpm --filter game build",
+    "app:start": "pnpm --filter app start",
+    "app:android": "pnpm --filter app android",
+    "app:ios": "pnpm --filter app ios"
+  }
+}
