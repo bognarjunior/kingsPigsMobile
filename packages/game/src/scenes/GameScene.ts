@@ -29,8 +29,8 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, ground)
     this.physics.add.collider(this.pig, ground)
 
-    this.inputSystem = new InputSystem(this)
     this.virtualControls = new VirtualControls()
+    this.inputSystem = new InputSystem(this, this.virtualControls)
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.handleShutdown, this)
 

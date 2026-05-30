@@ -4,3 +4,7 @@ export interface InputState {
   readonly jump: boolean
   readonly attack: boolean
 }
+
+export interface TouchInputSource {
+  getState(): InputState
+}
