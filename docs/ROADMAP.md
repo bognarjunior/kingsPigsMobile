@@ -47,41 +47,102 @@ verified **on the Android emulator and the iOS Simulator**.
 
 ## Phase 2 — Animation and State Machine ✅
 
-- Full slicing of the King spritesheets (Idle, Run, Jump, Fall, Attack, Hit, Dead).
-- Refined Player State Machine (`idle | run | jump | fall | attack | hurt | dead`).
-- `Pig` enemy with patrol AI (walks between bounds, detects the player).
-- `Enemy` as the base class; `Pig` extends it.
+Animated King driven by a state machine, plus the first enemy.
+
+- [x] Copy + normalize the King animation sheets (run/jump/fall/attack/hit/dead)
+- [x] Reusable `StateMachine` (behaviors), decoupled from any specific entity
+- [x] Player state machine drives animations (`idle | run | jump | fall | attack | hurt | dead`)
+- [x] Central animation registration; load all sheets in `BootScene`
+- [x] Tighten physics bodies to the sprite's opaque bounds (feet rest on the ground)
+- [x] `Enemy` base class; `Pig` (03-Pig) extends it
+- [x] `PatrolBehavior` + chase: Pig patrols between bounds and chases within detection range
+- [x] No combat yet — attack/hit are animation-only (damage lands in Phase 5)
+
+**Acceptance:** the King plays the right animation per state and lands cleanly on the
+ground; the Pig patrols and switches to chasing when the King is in range, facing its
+movement direction. Verified on the iOS Simulator (Android sign-off pending).
+
+---
 
 ## Phase 3 — Mobile virtual controls
 
-- Functional `VirtualControls`: ◀ ▶ jump attack.
-- **Multi-touch** (hold a direction + jump/attack simultaneously).
-- `touchstart`/`touchend` feeding `InputSystem` (same `InputState` as the keyboard).
+Make the on-screen controls actually drive the game, with multi-touch.
+
+- [ ] Wire `VirtualControls` buttons (◀ ▶ jump attack) to `touchstart`/`touchend`
+- [ ] Touch source produces an `InputState`; `InputSystem` merges keyboard + touch
+- [ ] **Multi-touch**: hold a direction while pressing jump/attack at the same time
+- [ ] Visual pressed/active feedback on each button
+- [ ] Suppress default touch gestures (scroll, double-tap zoom, long-press) over the canvas
+- [ ] Tune button size, placement, and hit areas for thumbs in landscape
+
+**Acceptance:** on a touch target, holding ◀/▶ moves the King, jump and attack respond,
+and direction + action combos register simultaneously — with no reliance on a keyboard.
+Verified on Android and iOS.
+
+---
 
 ## Phase 4 — Tilemap / playable level
 
-- Map built in **Tiled**, imported into Phaser.
-- Tilesets from the original repository (terrain, decoration).
-- Tile-layer collision replaces the placeholder ground.
-- `CameraSystem`: player follow, map bounds, shake.
+Replace the placeholder ground with a real level and a following camera.
+
+- [ ] Copy + normalize the tileset assets (Terrain 32×32, Decorations 32×32)
+- [ ] Build a level in **Tiled** and export it (JSON)
+- [ ] Load the tilemap + tilesets in Phaser and render the layers
+- [ ] Tile-layer collision replaces the placeholder rectangle ground
+- [ ] `CameraSystem`: follow the player, set world/camera bounds, screen shake
+- [ ] Spawn the Player and Pig from the map; derive patrol bounds from level geometry
+
+**Acceptance:** a scrollable level with real tile collisions; the camera follows the King
+within the map bounds; the King and Pig move over actual geometry. Verified on Android and iOS.
+
+---
 
 ## Phase 5 — HUD, collectibles, and progression
 
-- `HUD`: health bar, score/diamond counter.
-- Collectibles (hearts, diamonds), checkpoint.
-- Game over screen and restart flow.
+Make it a real game loop: fight, collect, lose, retry.
+
+- [ ] Copy + normalize the HUD/collectible assets (lives & coins)
+- [ ] `CombatSystem`: the King's attack damages the Pig; the Pig can hurt the King
+- [ ] Health for player/enemies; wire the `hurt`/`dead` states to real damage
+- [ ] `HUD`: health bar + score/diamond counter
+- [ ] Collectibles (diamonds/hearts) with pickup, score, and heal effects
+- [ ] Checkpoint + respawn
+- [ ] Game over screen and restart flow
+
+**Acceptance:** attacking kills the Pig and the Pig can hurt the King; collecting items
+updates the HUD; dying shows game over and restart works. Verified on Android and iOS.
+
+---
 
 ## Phase 6 — Game ↔ app communication
 
-- Full implementation of the `postMessage` / `onMessage` bridge.
-- Events: `game:ready`, `game:over`, `game:score`, `game:pause`.
-- App reacting (e.g. high score persistence, native pause UI).
+Close the loop with the native shell.
+
+- [ ] Emit all bridge events from the game: `game:ready`, `game:over`, `game:score`, `game:pause`
+- [ ] `GameBridge` routes typed `onMessage` events to handlers in the app
+- [ ] Native persistence via `storageService` (AsyncStorage): high score save/load
+- [ ] `game:save` / `game:load` round-trip through the Bridge
+- [ ] App → game commands via `injectedJavaScript` (e.g. pause/resume from native)
+- [ ] App state via Context API (e.g. high score) wired to the bridge events
+
+**Acceptance:** score and game-over reach the app; the high score persists across app
+restarts (AsyncStorage); pausing/resuming from native works. Verified on Android and iOS.
+
+---
 
 ## Phase 7 — Publishing
 
-- Icons, splash, orientation, permissions in `app.json`.
-- Build via **EAS** (migration from Expo Go to development/production build).
-- Preparation and submission to the **App Store** and **Play Store**.
+Ship it to the stores.
+
+- [ ] App icon, splash screen, orientation, and permissions in `app.json`
+- [ ] Migrate from Expo Go to an **EAS** development build
+- [ ] EAS build profiles (development / preview / production)
+- [ ] Production build + on-device performance pass (real devices)
+- [ ] Store metadata, screenshots, and privacy details
+- [ ] Submit to the **App Store** and **Play Store** (EAS Submit)
+
+**Acceptance:** production builds run on real iOS and Android devices and the store
+submissions are prepared. Verified on Android and iOS devices.
 
 ---
 
