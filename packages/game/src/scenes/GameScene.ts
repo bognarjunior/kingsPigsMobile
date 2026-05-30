@@ -1,8 +1,9 @@
 import Phaser from 'phaser'
 
-import { COLORS, DISPLAY, PLAYER, WORLD } from '@/constants/GameConstants'
+import { COLORS, DISPLAY, PIG, PLAYER, WORLD } from '@/constants/GameConstants'
 import { GAME_EVENT } from '@/constants/events'
 import { SCENE_KEY } from '@/constants/keys'
+import { Pig } from '@/entities/Pig'
 import { Player } from '@/entities/Player'
 import { InputSystem } from '@/systems/InputSystem'
 import { VirtualControls } from '@/ui/VirtualControls'
@@ -10,6 +11,7 @@ import { sendToApp } from '@/utils/bridge'
 
 export class GameScene extends Phaser.Scene {
   private player!: Player
+  private pig!: Pig
   private inputSystem!: InputSystem
   private virtualControls!: VirtualControls
 
@@ -21,8 +23,11 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(COLORS.BACKGROUND)
 
     const ground = this.createGround()
+
     this.player = new Player(this, PLAYER.SPAWN_X, PLAYER.SPAWN_Y)
+    this.pig = new Pig(this, PIG.SPAWN_X, PIG.SPAWN_Y)
     this.physics.add.collider(this.player, ground)
+    this.physics.add.collider(this.pig, ground)
 
     this.inputSystem = new InputSystem(this)
     this.virtualControls = new VirtualControls()
@@ -34,6 +39,7 @@ export class GameScene extends Phaser.Scene {
 
   update(): void {
     this.player.update(this.inputSystem.getState())
+    this.pig.update(this.player.x, this.player.y)
   }
 
   private createGround(): Phaser.GameObjects.Rectangle {
