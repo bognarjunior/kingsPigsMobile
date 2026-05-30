@@ -27,17 +27,17 @@ only the assets it actually uses (avoids the noise of unused files).
 
 Monorepo + game running + player with basic physics + WebView in the app.
 
-- [ ] Directory structure and `pnpm-workspace.yaml`
-- [ ] `game` package: Phaser 3 + Vite + TypeScript (strict)
-- [ ] `app` package: Expo initialized
-- [ ] `BootScene` (loads assets) + `MenuScene` (stub) + `GameScene` (gameplay)
-- [ ] Player (King Human, static sprite) with keyboard movement: ◀ ▶ jump
-- [ ] Platform physics: gravity + collision with a **placeholder** ground (static rectangle)
-- [ ] `InputSystem` abstracting the keyboard into `InputState`
-- [ ] `GameConstants.ts` with base values (PLAYER, PIG, PHYSICS)
-- [ ] `VirtualControls.ts` — visible buttons, **no** touch logic yet
-- [ ] `Bridge.ts` — skeleton (no-op outside the WebView)
-- [ ] Single-file build → app WebView showing the game
+- [x] Directory structure and `pnpm-workspace.yaml`
+- [x] `game` package: Phaser 3 + Vite + TypeScript (strict)
+- [x] `app` package: Expo initialized
+- [x] `BootScene` (loads assets) + `MenuScene` (stub) + `GameScene` (gameplay)
+- [x] Player (King Human, static sprite) with keyboard movement: ◀ ▶ jump
+- [x] Platform physics: gravity + collision with a **placeholder** ground (static rectangle)
+- [x] `InputSystem` abstracting the keyboard into `InputState`
+- [x] `GameConstants.ts` with base values (PLAYER, PIG, PHYSICS)
+- [x] `VirtualControls.ts` — visible buttons, **no** touch logic yet
+- [x] `Bridge.ts` — skeleton (no-op outside the WebView)
+- [x] Single-file build → app WebView showing the game
 
 **Acceptance:** `pnpm --filter game dev` shows the King walking/jumping on a platform;
 `pnpm --filter game build && pnpm --filter app start` shows the same game in the WebView,
