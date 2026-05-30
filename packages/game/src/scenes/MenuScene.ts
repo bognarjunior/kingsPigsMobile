@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import { DISPLAY } from '@/constants/GameConstants'
+import { MENU } from '@/constants/GameConstants'
 import { SCENE_KEY } from '@/constants/keys'
 
 export class MenuScene extends Phaser.Scene {
@@ -10,7 +10,7 @@ export class MenuScene extends Phaser.Scene {
 
   create(): void {
     this.add
-      .text(DISPLAY.WIDTH / 2, DISPLAY.HEIGHT / 2 - 20, 'KINGS AND PIGS', {
+      .text(this.scale.width / 2, this.scale.height / 2 - MENU.TITLE_GAP, 'KINGS AND PIGS', {
         fontFamily: 'monospace',
         fontSize: '24px',
         color: '#ffffff',
@@ -18,7 +18,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5)
 
     this.add
-      .text(DISPLAY.WIDTH / 2, DISPLAY.HEIGHT / 2 + 20, 'tap / press any key to play', {
+      .text(this.scale.width / 2, this.scale.height / 2 + MENU.TITLE_GAP, 'tap / press any key to play', {
         fontFamily: 'monospace',
         fontSize: '12px',
         color: '#c0c0c0',

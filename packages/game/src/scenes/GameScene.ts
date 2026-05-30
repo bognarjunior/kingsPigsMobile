@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import { COLORS, DISPLAY, PIG, PLAYER, WORLD } from '@/constants/GameConstants'
+import { COLORS, PIG, PLAYER, WORLD } from '@/constants/GameConstants'
 import { GAME_EVENT } from '@/constants/events'
 import { SCENE_KEY } from '@/constants/keys'
 import { Pig } from '@/entities/Pig'
@@ -43,10 +43,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createGround(): Phaser.GameObjects.Rectangle {
+    const { width, height } = this.scale
     const ground = this.add.rectangle(
-      DISPLAY.WIDTH / 2,
-      DISPLAY.HEIGHT - WORLD.GROUND_HEIGHT / 2,
-      DISPLAY.WIDTH,
+      width / 2,
+      height - WORLD.GROUND_HEIGHT / 2,
+      width,
       WORLD.GROUND_HEIGHT,
       COLORS.GROUND,
     )

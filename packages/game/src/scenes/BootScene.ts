@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 
 import { registerAnimations } from '@/animations/registerAnimations'
-import { DISPLAY, KING_SPRITE, PIG_SPRITE } from '@/constants/GameConstants'
+import { KING_SPRITE, PIG_SPRITE } from '@/constants/GameConstants'
 import { SCENE_KEY, TEXTURE_KEY } from '@/constants/keys'
 
 import kingIdleUrl from '@/assets/king/idle.png'
@@ -21,7 +21,7 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     this.add
-      .text(DISPLAY.WIDTH / 2, DISPLAY.HEIGHT / 2, 'Loading...', {
+      .text(this.scale.width / 2, this.scale.height / 2, 'Loading...', {
         fontFamily: 'monospace',
         fontSize: '16px',
         color: '#ffffff',

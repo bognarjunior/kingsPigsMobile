@@ -88,3 +88,7 @@ export const CONTROLS = {
   MARGIN: 16,
   GAP: 12,
 } as const
+
+export const MENU = {
+  TITLE_GAP: 20,
+} as const
