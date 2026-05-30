@@ -12,9 +12,9 @@ only the assets it actually uses (avoids the noise of unused files).
 | Phase | Topic | Status |
 |-------|-------|--------|
 | 1 | Foundation (monorepo + player + WebView) | ✅ Done |
-| 2 | Animation and State Machine | ✅ Done (Android sign-off pending) |
-| 3 | Mobile virtual controls | ⬜ Not started |
-| 4 | Tilemap / playable level | ⬜ Not started |
+| 2 | Animation and State Machine | ✅ Done |
+| 3 | Mobile virtual controls | ✅ Done |
+| 4 | Tilemap / playable level | 🚧 In progress |
 | 5 | HUD, collectibles, and progression | ⬜ Not started |
 | 6 | Game ↔ app communication | ⬜ Not started |
 | 7 | Publishing | ⬜ Not started |
@@ -60,24 +60,25 @@ Animated King driven by a state machine, plus the first enemy.
 
 **Acceptance:** the King plays the right animation per state and lands cleanly on the
 ground; the Pig patrols and switches to chasing when the King is in range, facing its
-movement direction. Verified on the iOS Simulator (Android sign-off pending).
+movement direction. Verified on the iOS Simulator and a physical Android device (APK).
 
 ---
 
-## Phase 3 — Mobile virtual controls
+## Phase 3 — Mobile virtual controls ✅
 
 Make the on-screen controls actually drive the game, with multi-touch.
 
-- [ ] Wire `VirtualControls` buttons (◀ ▶ jump attack) to `touchstart`/`touchend`
-- [ ] Touch source produces an `InputState`; `InputSystem` merges keyboard + touch
-- [ ] **Multi-touch**: hold a direction while pressing jump/attack at the same time
-- [ ] Visual pressed/active feedback on each button
-- [ ] Suppress default touch gestures (scroll, double-tap zoom, long-press) over the canvas
-- [ ] Tune button size, placement, and hit areas for thumbs in landscape
+- [x] Wire `VirtualControls` buttons (◀ ▶ jump attack) via pointer events (touch + mouse)
+- [x] Touch source produces an `InputState`; `InputSystem` merges keyboard + touch
+- [x] **Multi-touch**: hold a direction while pressing jump/attack at the same time
+- [x] Visual pressed/active feedback on each button
+- [x] Suppress default touch gestures (scroll, double-tap zoom, long-press) over the canvas
+- [x] Immersive fullscreen (hide Android nav/status bars) + responsive resolution that
+      fills the screen with no letterbox
 
-**Acceptance:** on a touch target, holding ◀/▶ moves the King, jump and attack respond,
-and direction + action combos register simultaneously — with no reliance on a keyboard.
-Verified on Android and iOS.
+**Acceptance:** on the device, holding ◀/▶ moves the King, jump and attack respond, and
+direction + action combos register simultaneously — no keyboard needed; the game runs
+fullscreen. Verified on a physical Android device (APK).
 
 ---
 
