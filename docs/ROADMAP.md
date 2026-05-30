@@ -11,8 +11,8 @@ only the assets it actually uses (avoids the noise of unused files).
 
 | Phase | Topic | Status |
 |-------|-------|--------|
-| 1 | Foundation (monorepo + player + WebView) | 🚧 In progress |
-| 2 | Animation and State Machine | ⬜ Not started |
+| 1 | Foundation (monorepo + player + WebView) | ✅ Done |
+| 2 | Animation and State Machine | ✅ Done (Android sign-off pending) |
 | 3 | Mobile virtual controls | ⬜ Not started |
 | 4 | Tilemap / playable level | ⬜ Not started |
 | 5 | HUD, collectibles, and progression | ⬜ Not started |
@@ -23,7 +23,7 @@ only the assets it actually uses (avoids the noise of unused files).
 
 ---
 
-## Phase 1 — Foundation (current) 🚧
+## Phase 1 — Foundation ✅
 
 Monorepo + game running + player with basic physics + WebView in the app.
 
@@ -45,7 +45,7 @@ verified **on the Android emulator and the iOS Simulator**.
 
 ---
 
-## Phase 2 — Animation and State Machine
+## Phase 2 — Animation and State Machine ✅
 
 - Full slicing of the King spritesheets (Idle, Run, Jump, Fall, Attack, Hit, Dead).
 - Refined Player State Machine (`idle | run | jump | fall | attack | hurt | dead`).
