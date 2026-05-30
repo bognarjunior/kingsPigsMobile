@@ -1,0 +1,33 @@
+# EAS upload filter (replaces .gitignore for the build archive).
+# Unlike .gitignore, this KEEPS packages/app/src/assets/game/gameHtml.ts so the
+# already-built game bundle is included in the APK without committing it.
+
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+packages/game/dist/
+
+# Raw art library — not needed inside the app build
+Kings and Pigs/
+docs/
+
+# Expo / RN
+.expo/
+*.expo/
+web-build/
+ios/
+android/
+
+# Logs / env / editor / OS
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.env
+.env.*
+.DS_Store
+.idea/
+.claude/
+coverage/
