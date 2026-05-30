@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+packages/game/dist/
+
+# Generated game bundle (produced by `pnpm --filter game build`)
+packages/app/src/assets/game/gameHtml.ts
+
+# Expo / React Native
+.expo/
+*.expo/
+web-build/
+ios/
+android/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+
+# Claude local overrides (personal, not shared)
+.claude/settings.local.json
+
+# Test coverage
+coverage/
