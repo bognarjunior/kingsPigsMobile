@@ -1,29 +1,45 @@
 import Phaser from 'phaser'
 
-import { PLAYER } from '@/constants/GameConstants'
-import { TEXTURE_KEY } from '@/constants/keys'
+import { StateMachine } from '@/behaviors/StateMachine'
+import { KING_BODY, PLAYER } from '@/constants/GameConstants'
+import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
 import type { InputState } from '@/types/input'
 import type { PlayerState } from '@/types/player'
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
-  private currentState: PlayerState = 'idle'
+  private readonly stateMachine = new StateMachine<PlayerState>()
+  private isAttacking = false
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, TEXTURE_KEY.KING, 0)
+    super(scene, x, y, TEXTURE_KEY.KING_IDLE, 0)
 
     scene.add.existing(this)
     scene.physics.add.existing(this)
-
     this.setCollideWorldBounds(true)
+
+    const body = this.body as Phaser.Physics.Arcade.Body
+    body.setSize(KING_BODY.WIDTH, KING_BODY.HEIGHT, false)
+    body.setOffset(KING_BODY.OFFSET_X, KING_BODY.OFFSET_Y)
+
+    this.stateMachine
+      .addState('idle', { onEnter: () => this.play(ANIM_KEY.KING_IDLE, true) })
+      .addState('run', { onEnter: () => this.play(ANIM_KEY.KING_RUN, true) })
+      .addState('jump', { onEnter: () => this.play(ANIM_KEY.KING_JUMP, true) })
+      .addState('fall', { onEnter: () => this.play(ANIM_KEY.KING_FALL, true) })
+      .addState('attack', { onEnter: () => this.enterAttack() })
+      .addState('hurt', { onEnter: () => this.play(ANIM_KEY.KING_HIT, true) })
+      .addState('dead', { onEnter: () => this.play(ANIM_KEY.KING_DEAD, true) })
+
+    this.stateMachine.setState('idle')
   }
 
   get playerState(): PlayerState {
-    return this.currentState
+    return this.stateMachine.state ?? 'idle'
   }
 
   update(input: InputState): void {
     this.handleInput(input)
-    this.handlePhysics()
+    this.resolveState()
   }
 
   private handleInput(input: InputState): void {
@@ -42,18 +58,33 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (input.jump && body.blocked.down) {
       this.setVelocityY(PLAYER.JUMP_VELOCITY)
     }
+
+    if (input.attack && !this.isAttacking && body.blocked.down) {
+      this.stateMachine.setState('attack')
+    }
   }
 
-  private handlePhysics(): void {
-    const body = this.body as Phaser.Physics.Arcade.Body
-    const onGround = body.blocked.down
-
-    if (!onGround) {
-      this.currentState = body.velocity.y < 0 ? 'jump' : 'fall'
-    } else if (body.velocity.x !== 0) {
-      this.currentState = 'run'
-    } else {
-      this.currentState = 'idle'
+  private resolveState(): void {
+    if (this.isAttacking) {
+      return
     }
+
+    const body = this.body as Phaser.Physics.Arcade.Body
+
+    if (!body.blocked.down) {
+      this.stateMachine.setState(body.velocity.y < 0 ? 'jump' : 'fall')
+    } else if (body.velocity.x !== 0) {
+      this.stateMachine.setState('run')
+    } else {
+      this.stateMachine.setState('idle')
+    }
+  }
+
+  private enterAttack(): void {
+    this.isAttacking = true
+    this.play(ANIM_KEY.KING_ATTACK, true)
+    this.once(`${Phaser.Animations.Events.ANIMATION_COMPLETE_KEY}${ANIM_KEY.KING_ATTACK}`, () => {
+      this.isAttacking = false
+    })
   }
 }

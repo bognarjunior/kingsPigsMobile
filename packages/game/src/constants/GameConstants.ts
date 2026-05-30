@@ -12,9 +12,51 @@ export const WORLD = {
   GROUND_HEIGHT: 24,
 } as const
 
-export const KING = {
+export const KING_SPRITE = {
   FRAME_WIDTH: 78,
   FRAME_HEIGHT: 58,
+} as const
+
+export const PIG_SPRITE = {
+  FRAME_WIDTH: 34,
+  FRAME_HEIGHT: 28,
+} as const
+
+export const KING_BODY = {
+  WIDTH: 37,
+  HEIGHT: 26,
+  OFFSET_X: 9,
+  OFFSET_Y: 18,
+} as const
+
+export const PIG_BODY = {
+  WIDTH: 18,
+  HEIGHT: 17,
+  OFFSET_X: 11,
+  OFFSET_Y: 11,
+} as const
+
+export const KING_FRAMES = {
+  IDLE: 11,
+  RUN: 8,
+  JUMP: 1,
+  FALL: 1,
+  ATTACK: 3,
+  HIT: 2,
+  DEAD: 4,
+} as const
+
+export const PIG_FRAMES = {
+  IDLE: 11,
+  RUN: 6,
+} as const
+
+export const ANIM = {
+  IDLE_FPS: 8,
+  RUN_FPS: 12,
+  ATTACK_FPS: 14,
+  HIT_FPS: 10,
+  DEAD_FPS: 8,
 } as const
 
 export const PLAYER = {
@@ -27,11 +69,14 @@ export const PLAYER = {
 } as const
 
 export const PIG = {
-  SPEED: 80,
+  PATROL_SPEED: 60,
+  CHASE_SPEED: 110,
   PATROL_DISTANCE: 120,
+  DETECTION_RANGE: 200,
   ATTACK_DAMAGE: 15,
   MAX_HEALTH: 50,
-  DETECTION_RANGE: 200,
+  SPAWN_X: 360,
+  SPAWN_Y: 180,
 } as const
 
 export const PHYSICS = {
