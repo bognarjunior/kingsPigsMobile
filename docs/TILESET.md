@@ -44,7 +44,21 @@ Row 4 above it is **empty/transparent** — never place collidable tiles there
 |-----|----------------|-----|
 | Plain fill | (2,8) | 155 |
 
-## TODO (not mapped yet)
-- **Background-to-wall shadow ("sobra")**: where the pink background meets a border
-  there is a shadowed edge tile (per-side shapes). To be located and added on the
-  `background` layer next to the borders.
+### Background shadow ("sobra") — 9-slice at cols 1–3, rows 7–9
+Darkens the pink background where it touches a solid tile. Orthogonal neighbours give
+edges + concave corners (used by the room borders).
+| Use | Cell (col,row) | gid |
+|-----|----------------|-----|
+| Top-left / Top / Top-right | (1,7)/(2,7)/(3,7) | 135 / 136 / 137 |
+| Left / Plain / Right | (1,8)/(2,8)/(3,8) | 154 / 155 / 156 |
+| Bottom-left / Bottom / Bottom-right | (1,9)/(2,9)/(3,9) | 173 / 174 / 175 |
+
+### Convex shadow corners — blob block at cols 7–8, rows 7–8 (VERIFIED in-game)
+For shadows that wrap **outside** a protrusion (e.g. a floating platform): the
+diagonal background cell uses the blob tile whose dark mass points toward the solid.
+| Diagonal cell relative to solid | Cell (col,row) | gid |
+|---------------------------------|----------------|-----|
+| solid is down-right (dark bottom-right) | (7,7) | 141 |
+| solid is down-left (dark bottom-left) | (8,7) | 142 |
+| solid is up-right (dark top-right) | (7,8) | 160 |
+| solid is up-left (dark top-left) | (8,8) | 161 |
