@@ -27,11 +27,12 @@ Each cell of this block is a rounded corner; together they form the window.
 | **Bottom-left corner** | (7,2) | 46 |
 | **Bottom-right corner** | (8,2) | 47 |
 
-### Floating platform — 2 rows tall, cols 1–3, rows 4–5
+### Floating platform — SINGLE row, cols 1–3, row 5
+Row 4 above it is **empty/transparent** — never place collidable tiles there
+(doing so adds an invisible collision row above the platform).
 | Use | Cell (col,row) | gid |
 |-----|----------------|-----|
-| Platform top — left cap / middle / right cap | (1,4)/(2,4)/(3,4) | 78 / 79 / 80 |
-| Platform bottom — left cap / middle / right cap | (1,5)/(2,5)/(3,5) | 97 / 98 / 99 |
+| Platform — left cap / middle / right cap | (1,5)/(2,5)/(3,5) | 97 / 98 / 99 |
 
 ### Vertical pillar — 1-wide wall, col 5, rows 1–3
 | Use | Cell (col,row) | gid |
