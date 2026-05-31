@@ -33,6 +33,16 @@ export const LAYER = {
   SOLID: 'solid',
 } as const
 
+export const OBJECT_LAYER = {
+  SPAWNS: 'spawns',
+} as const
+
+export const SPAWN = {
+  PLAYER: 'player_spawn',
+  ENTRY_DOOR: 'entry_door',
+  EXIT_DOOR: 'exit_door',
+} as const
+
 export const ANIM_KEY = {
   KING_IDLE: 'king-idle-anim',
   KING_RUN: 'king-run-anim',

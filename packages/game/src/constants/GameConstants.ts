@@ -82,12 +82,6 @@ export const PLAYER = {
   SPAWN_Y: 360,
 } as const
 
-export const DOOR = {
-  FLOOR_Y: 416,
-  ENTRY_X: 64,
-  EXIT_X: 1536,
-} as const
-
 export const CAMERA = {
   LERP: 0.12,
 } as const
