@@ -9,6 +9,5 @@ export function useImmersiveMode(): void {
     }
 
     NavigationBar.setVisibilityAsync('hidden').catch(() => {})
-    NavigationBar.setBehaviorAsync('overlay-swipe').catch(() => {})
   }, [])
 }
