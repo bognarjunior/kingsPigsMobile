@@ -14,6 +14,18 @@ export const TEXTURE_KEY = {
   KING_DEAD: 'king-dead',
   PIG_IDLE: 'pig-idle',
   PIG_RUN: 'pig-run',
+  TERRAIN: 'terrain',
+} as const
+
+export const TILEMAP_KEY = {
+  LEVEL1: 'level1',
+} as const
+
+export const TILESET_NAME = 'terrain'
+
+export const LAYER = {
+  BACKGROUND: 'background',
+  SOLID: 'solid',
 } as const
 
 export const ANIM_KEY = {

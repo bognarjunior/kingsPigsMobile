@@ -1,17 +1,16 @@
 import Phaser from 'phaser'
 
-import { COLORS, PIG, PLAYER, WORLD } from '@/constants/GameConstants'
+import { COLORS, PLAYER } from '@/constants/GameConstants'
 import { GAME_EVENT } from '@/constants/events'
-import { SCENE_KEY } from '@/constants/keys'
-import { Pig } from '@/entities/Pig'
+import { LAYER, SCENE_KEY, TEXTURE_KEY, TILEMAP_KEY, TILESET_NAME } from '@/constants/keys'
 import { Player } from '@/entities/Player'
+import { CameraSystem } from '@/systems/CameraSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { VirtualControls } from '@/ui/VirtualControls'
 import { sendToApp } from '@/utils/bridge'
 
 export class GameScene extends Phaser.Scene {
   private player!: Player
-  private pig!: Pig
   private inputSystem!: InputSystem
   private virtualControls!: VirtualControls
 
@@ -22,12 +21,14 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor(COLORS.BACKGROUND)
 
-    const ground = this.createGround()
+    const solidLayer = this.createLevel()
 
     this.player = new Player(this, PLAYER.SPAWN_X, PLAYER.SPAWN_Y)
-    this.pig = new Pig(this, PIG.SPAWN_X, PIG.SPAWN_Y)
-    this.physics.add.collider(this.player, ground)
-    this.physics.add.collider(this.pig, ground)
+    this.physics.add.collider(this.player, solidLayer)
+
+    const { widthInPixels, heightInPixels } = solidLayer.tilemap
+    this.physics.world.setBounds(0, 0, widthInPixels, heightInPixels)
+    new CameraSystem(this, this.player, widthInPixels, heightInPixels)
 
     this.virtualControls = new VirtualControls()
     this.inputSystem = new InputSystem(this, this.virtualControls)
@@ -39,20 +40,23 @@ export class GameScene extends Phaser.Scene {
 
   update(): void {
     this.player.update(this.inputSystem.getState())
-    this.pig.update(this.player.x, this.player.y)
   }
 
-  private createGround(): Phaser.GameObjects.Rectangle {
-    const { width, height } = this.scale
-    const ground = this.add.rectangle(
-      width / 2,
-      height - WORLD.GROUND_HEIGHT / 2,
-      width,
-      WORLD.GROUND_HEIGHT,
-      COLORS.GROUND,
-    )
-    this.physics.add.existing(ground, true)
-    return ground
+  private createLevel(): Phaser.Tilemaps.TilemapLayer {
+    const map = this.make.tilemap({ key: TILEMAP_KEY.LEVEL1 })
+    const tileset = map.addTilesetImage(TILESET_NAME, TEXTURE_KEY.TERRAIN)
+    if (!tileset) {
+      throw new Error('terrain tileset could not be added to the tilemap')
+    }
+
+    map.createLayer(LAYER.BACKGROUND, tileset, 0, 0)
+    const solidLayer = map.createLayer(LAYER.SOLID, tileset, 0, 0)
+    if (!solidLayer) {
+      throw new Error('solid layer could not be created from the tilemap')
+    }
+
+    solidLayer.setCollisionByExclusion([-1])
+    return solidLayer
   }
 
   private handleShutdown(): void {

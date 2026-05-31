@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 
 import { registerAnimations } from '@/animations/registerAnimations'
 import { KING_SPRITE, PIG_SPRITE } from '@/constants/GameConstants'
-import { SCENE_KEY, TEXTURE_KEY } from '@/constants/keys'
+import { SCENE_KEY, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 
 import kingIdleUrl from '@/assets/king/idle.png'
 import kingRunUrl from '@/assets/king/run.png'
@@ -13,6 +13,8 @@ import kingHitUrl from '@/assets/king/hit.png'
 import kingDeadUrl from '@/assets/king/dead.png'
 import pigIdleUrl from '@/assets/pig/idle.png'
 import pigRunUrl from '@/assets/pig/run.png'
+import terrainUrl from '@/assets/tiles/terrain.png'
+import level1 from '@/assets/levels/level1.json'
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -40,6 +42,9 @@ export class BootScene extends Phaser.Scene {
     const pig = { frameWidth: PIG_SPRITE.FRAME_WIDTH, frameHeight: PIG_SPRITE.FRAME_HEIGHT }
     this.load.spritesheet(TEXTURE_KEY.PIG_IDLE, pigIdleUrl, pig)
     this.load.spritesheet(TEXTURE_KEY.PIG_RUN, pigRunUrl, pig)
+
+    this.load.image(TEXTURE_KEY.TERRAIN, terrainUrl)
+    this.load.tilemapTiledJSON(TILEMAP_KEY.LEVEL1, level1)
   }
 
   create(): void {

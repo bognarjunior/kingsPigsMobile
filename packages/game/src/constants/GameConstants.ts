@@ -65,7 +65,11 @@ export const PLAYER = {
   ATTACK_DAMAGE: 25,
   MAX_HEALTH: 100,
   SPAWN_X: 80,
-  SPAWN_Y: 180,
+  SPAWN_Y: 360,
+} as const
+
+export const CAMERA = {
+  LERP: 0.12,
 } as const
 
 export const PIG = {
