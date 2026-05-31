@@ -14,7 +14,7 @@ only the assets it actually uses (avoids the noise of unused files).
 | 1 | Foundation (monorepo + player + WebView) | ✅ Done |
 | 2 | Animation and State Machine | ✅ Done |
 | 3 | Mobile virtual controls | ✅ Done |
-| 4 | Tilemap / playable level | 🚧 In progress |
+| 4 | Tilemap / playable level | ✅ Done (iOS sim; Pig + shake → Phase 5) |
 | 5 | HUD, collectibles, and progression | ⬜ Not started |
 | 6 | Game ↔ app communication | ⬜ Not started |
 | 7 | Publishing | ⬜ Not started |
@@ -86,15 +86,21 @@ fullscreen. Verified on a physical Android device (APK).
 
 Replace the placeholder ground with a real level and a following camera.
 
-- [ ] Copy + normalize the tileset assets (Terrain 32×32, Decorations 32×32)
-- [ ] Build a level in **Tiled** and export it (JSON)
-- [ ] Load the tilemap + tilesets in Phaser and render the layers
-- [ ] Tile-layer collision replaces the placeholder rectangle ground
-- [ ] `CameraSystem`: follow the player, set world/camera bounds, screen shake
-- [ ] Spawn the Player and Pig from the map; derive patrol bounds from level geometry
+- [x] Copy + normalize the tileset assets (Terrain 32×32) — Decorations deferred (unused so far)
+- [x] Build a level and export it (JSON) — authored via a generator script (Tiled-compatible JSON)
+- [x] Load the tilemap + tilesets in Phaser and render the layers (`background` + `solid`)
+- [x] Tile-layer collision replaces the placeholder rectangle ground
+- [x] `CameraSystem`: follow the player, set world/camera bounds — **screen shake deferred to Phase 5**
+- [x] Spawn the Player and the doors from the map object layer (`spawns`)
+- [x] Entry/exit doors with intro/outro sequence (extra: King exits/enters, `game:level-complete`)
+
+**Scope decisions for this phase:**
+- King-only — the **Pig** (spawn + patrol from geometry) is deferred to **Phase 5** (with combat).
+- **Screen shake** is deferred to Phase 5, where combat/impacts give it a natural trigger.
+- Verified on the **iOS Simulator** only for now (EAS/Android build is Phase 7).
 
 **Acceptance:** a scrollable level with real tile collisions; the camera follows the King
-within the map bounds; the King and Pig move over actual geometry. Verified on Android and iOS.
+within the map bounds; the King moves over actual geometry. Verified on the iOS Simulator.
 
 ---
 
