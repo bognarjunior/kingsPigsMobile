@@ -22,6 +22,11 @@ export const PIG_SPRITE = {
   FRAME_HEIGHT: 28,
 } as const
 
+export const DOOR_SPRITE = {
+  FRAME_WIDTH: 46,
+  FRAME_HEIGHT: 56,
+} as const
+
 export const KING_BODY = {
   WIDTH: 37,
   HEIGHT: 26,
@@ -44,11 +49,18 @@ export const KING_FRAMES = {
   ATTACK: 3,
   HIT: 2,
   DEAD: 4,
+  DOOR_IN: 8,
+  DOOR_OUT: 8,
 } as const
 
 export const PIG_FRAMES = {
   IDLE: 11,
   RUN: 6,
+} as const
+
+export const DOOR_FRAMES = {
+  OPENING: 5,
+  CLOSING: 3,
 } as const
 
 export const ANIM = {
@@ -57,6 +69,8 @@ export const ANIM = {
   ATTACK_FPS: 14,
   HIT_FPS: 10,
   DEAD_FPS: 8,
+  DOOR_FPS: 14,
+  KING_DOOR_FPS: 12,
 } as const
 
 export const PLAYER = {
@@ -66,6 +80,12 @@ export const PLAYER = {
   MAX_HEALTH: 100,
   SPAWN_X: 80,
   SPAWN_Y: 360,
+} as const
+
+export const DOOR = {
+  FLOOR_Y: 416,
+  ENTRY_X: 64,
+  EXIT_X: 1536,
 } as const
 
 export const CAMERA = {

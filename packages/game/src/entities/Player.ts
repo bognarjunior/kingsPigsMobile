@@ -6,9 +6,13 @@ import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
 import type { InputState } from '@/types/input'
 import type { PlayerState } from '@/types/player'
 
+const completeEvent = (animKey: string): string =>
+  `${Phaser.Animations.Events.ANIMATION_COMPLETE_KEY}${animKey}`
+
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private readonly stateMachine = new StateMachine<PlayerState>()
   private isAttacking = false
+  private inCutscene = false
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, TEXTURE_KEY.KING_IDLE, 0)
@@ -29,6 +33,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       .addState('attack', { onEnter: () => this.enterAttack() })
       .addState('hurt', { onEnter: () => this.play(ANIM_KEY.KING_HIT, true) })
       .addState('dead', { onEnter: () => this.play(ANIM_KEY.KING_DEAD, true) })
+      .addState('doorOut', { onEnter: () => this.play(ANIM_KEY.KING_DOOR_OUT, true) })
+      .addState('doorIn', { onEnter: () => this.play(ANIM_KEY.KING_DOOR_IN, true) })
 
     this.stateMachine.setState('idle')
   }
@@ -37,7 +43,41 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.stateMachine.state ?? 'idle'
   }
 
+  get isBusy(): boolean {
+    return this.inCutscene
+  }
+
+  beginCutscene(): void {
+    this.inCutscene = true
+    this.setVelocity(0, 0)
+  }
+
+  enterFromDoor(onComplete: () => void): void {
+    this.inCutscene = true
+    this.setVelocity(0, 0)
+    this.stateMachine.setState('doorOut')
+    this.once(completeEvent(ANIM_KEY.KING_DOOR_OUT), () => {
+      this.inCutscene = false
+      this.stateMachine.setState('idle')
+      onComplete()
+    })
+  }
+
+  exitIntoDoor(onComplete: () => void): void {
+    this.inCutscene = true
+    this.setVelocity(0, 0)
+    this.stateMachine.setState('doorIn')
+    this.once(completeEvent(ANIM_KEY.KING_DOOR_IN), () => {
+      this.setVisible(false)
+      onComplete()
+    })
+  }
+
   update(input: InputState): void {
+    if (this.inCutscene) {
+      return
+    }
+
     this.handleInput(input)
     this.resolveState()
   }

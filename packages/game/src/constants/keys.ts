@@ -12,9 +12,14 @@ export const TEXTURE_KEY = {
   KING_ATTACK: 'king-attack',
   KING_HIT: 'king-hit',
   KING_DEAD: 'king-dead',
+  KING_DOOR_IN: 'king-door-in',
+  KING_DOOR_OUT: 'king-door-out',
   PIG_IDLE: 'pig-idle',
   PIG_RUN: 'pig-run',
   TERRAIN: 'terrain',
+  DOOR_IDLE: 'door-idle',
+  DOOR_OPENING: 'door-opening',
+  DOOR_CLOSING: 'door-closing',
 } as const
 
 export const TILEMAP_KEY = {
@@ -36,6 +41,10 @@ export const ANIM_KEY = {
   KING_ATTACK: 'king-attack-anim',
   KING_HIT: 'king-hit-anim',
   KING_DEAD: 'king-dead-anim',
+  KING_DOOR_IN: 'king-door-in-anim',
+  KING_DOOR_OUT: 'king-door-out-anim',
   PIG_IDLE: 'pig-idle-anim',
   PIG_RUN: 'pig-run-anim',
+  DOOR_OPENING: 'door-opening-anim',
+  DOOR_CLOSING: 'door-closing-anim',
 } as const

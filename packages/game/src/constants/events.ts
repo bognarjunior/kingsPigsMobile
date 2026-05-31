@@ -1,5 +1,6 @@
 export const GAME_EVENT = {
   READY: 'game:ready',
+  LEVEL_COMPLETE: 'game:level-complete',
   OVER: 'game:over',
   SCORE: 'game:score',
   PAUSE: 'game:pause',

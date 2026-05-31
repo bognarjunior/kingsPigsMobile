@@ -1,1 +1,1 @@
-export type PlayerState = 'idle' | 'run' | 'jump' | 'fall' | 'attack' | 'hurt' | 'dead'
+export type PlayerState = 'idle' | 'run' | 'jump' | 'fall' | 'attack' | 'hurt' | 'dead' | 'doorIn' | 'doorOut'
