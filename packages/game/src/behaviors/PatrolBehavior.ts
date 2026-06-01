@@ -7,11 +7,11 @@ export class PatrolBehavior {
     private readonly speed: number,
   ) {}
 
-  velocityFor(currentX: number): number {
-    if (currentX <= this.leftBound) {
-      this.direction = 1
-    } else if (currentX >= this.rightBound) {
+  velocityFor(currentX: number, blockedLeft: boolean, blockedRight: boolean): number {
+    if (blockedRight || currentX >= this.rightBound) {
       this.direction = -1
+    } else if (blockedLeft || currentX <= this.leftBound) {
+      this.direction = 1
     }
 
     return this.direction * this.speed

@@ -15,6 +15,9 @@ import kingDoorInUrl from '@/assets/king/door-in.png'
 import kingDoorOutUrl from '@/assets/king/door-out.png'
 import pigIdleUrl from '@/assets/pig/idle.png'
 import pigRunUrl from '@/assets/pig/run.png'
+import pigAttackUrl from '@/assets/pig/attack.png'
+import pigHitUrl from '@/assets/pig/hit.png'
+import pigDeadUrl from '@/assets/pig/dead.png'
 import doorIdleUrl from '@/assets/door/idle.png'
 import doorOpeningUrl from '@/assets/door/opening.png'
 import doorClosingUrl from '@/assets/door/closing.png'
@@ -50,6 +53,9 @@ export class BootScene extends Phaser.Scene {
     const pig = { frameWidth: PIG_SPRITE.FRAME_WIDTH, frameHeight: PIG_SPRITE.FRAME_HEIGHT }
     this.load.spritesheet(TEXTURE_KEY.PIG_IDLE, pigIdleUrl, pig)
     this.load.spritesheet(TEXTURE_KEY.PIG_RUN, pigRunUrl, pig)
+    this.load.spritesheet(TEXTURE_KEY.PIG_ATTACK, pigAttackUrl, pig)
+    this.load.spritesheet(TEXTURE_KEY.PIG_HIT, pigHitUrl, pig)
+    this.load.spritesheet(TEXTURE_KEY.PIG_DEAD, pigDeadUrl, pig)
 
     const door = { frameWidth: DOOR_SPRITE.FRAME_WIDTH, frameHeight: DOOR_SPRITE.FRAME_HEIGHT }
     this.load.spritesheet(TEXTURE_KEY.DOOR_IDLE, doorIdleUrl, door)

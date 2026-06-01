@@ -1,15 +1,18 @@
 import Phaser from 'phaser'
 
-import { COLORS, KING_BODY, KING_SPRITE } from '@/constants/GameConstants'
-import { GAME_EVENT } from '@/constants/events'
+import { COLORS, COMBAT, KING_BODY, KING_SPRITE, PIG_BODY, PIG_SPRITE } from '@/constants/GameConstants'
+import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
 import { LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
-import { TILESET } from '@/constants/tiles'
+import { TILE_SIZE, TILESET } from '@/constants/tiles'
 import { Door } from '@/entities/Door'
+import { Pig } from '@/entities/Pig'
 import { Player } from '@/entities/Player'
-import { LEVEL_DEFINITIONS, nextLevelKey } from '@/levels'
+import { LEVEL_DEFINITIONS, LEVEL_ENEMIES, nextLevelKey } from '@/levels'
 import { CameraSystem } from '@/systems/CameraSystem'
+import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
+import type { EnemySpawn } from '@/types/enemy'
 import type { LevelInit, LevelPhase } from '@/types/level'
 import { VirtualControls } from '@/ui/VirtualControls'
 import { sendToApp } from '@/utils/bridge'
@@ -21,6 +24,7 @@ export class GameScene extends Phaser.Scene {
   private player!: Player
   private entryDoor!: Door
   private exitDoor!: Door
+  private enemies: Pig[] = []
   private inputSystem!: InputSystem
   private virtualControls!: VirtualControls
   private phase: LevelPhase = 'intro'
@@ -60,6 +64,10 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, solidLayer)
     this.physics.add.overlap(this.player, this.exitDoor, this.handleExitReached, undefined, this)
 
+    this.enemies = this.spawnEnemies(LEVEL_ENEMIES[this.levelKey] ?? [], solidLayer)
+    new CombatSystem(this, this.player, this.enemies)
+    this.events.once(ENTITY_EVENT.PLAYER_DIED, () => this.scene.restart({ levelKey: this.levelKey }))
+
     const { widthInPixels, heightInPixels } = map
     this.physics.world.setBounds(0, 0, widthInPixels, heightInPixels)
     new CameraSystem(this, this.player, widthInPixels, heightInPixels)
@@ -75,6 +83,43 @@ export class GameScene extends Phaser.Scene {
 
   update(): void {
     this.player.update(this.inputSystem.getState())
+
+    if (this.phase !== 'play') {
+      return
+    }
+    this.enemies.forEach((enemy) => {
+      if (enemy.active) {
+        enemy.update(this.player.x, this.player.y)
+      }
+    })
+  }
+
+  private spawnEnemies(spawns: readonly EnemySpawn[], solidLayer: Phaser.Tilemaps.TilemapLayer): Pig[] {
+    return spawns.map((spawn) => {
+      const x = spawn.col * TILE_SIZE
+      const pig = new Pig(this, x, this.groundedYForEnemy(spawn.row * TILE_SIZE), spawn.patrol * TILE_SIZE)
+      this.physics.add.collider(pig, solidLayer)
+      this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
+      return pig
+    })
+  }
+
+  private tryStomp(pig: Pig): void {
+    if (!pig.isAlive) {
+      return
+    }
+
+    const playerBody = this.player.body as Phaser.Physics.Arcade.Body
+    const pigBody = pig.body as Phaser.Physics.Arcade.Body
+    const fallingOntoHead = playerBody.velocity.y > 0 && playerBody.bottom <= pigBody.top + COMBAT.STOMP_TOLERANCE
+    if (fallingOntoHead) {
+      pig.stomp()
+      this.player.bounce()
+    }
+  }
+
+  private groundedYForEnemy(floorY: number): number {
+    return floorY - (PIG_BODY.OFFSET_Y + PIG_BODY.HEIGHT - PIG_SPRITE.FRAME_HEIGHT / 2)
   }
 
   private startIntro(): void {

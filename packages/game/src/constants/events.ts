@@ -9,3 +9,10 @@ export const GAME_EVENT = {
 } as const
 
 export type GameEventName = (typeof GAME_EVENT)[keyof typeof GAME_EVENT]
+
+// internal scene events (entity-to-entity communication, never leave the game)
+export const ENTITY_EVENT = {
+  PLAYER_ATTACK: 'player:attack',
+  ENEMY_ATTACK: 'enemy:attack',
+  PLAYER_DIED: 'player:died',
+} as const

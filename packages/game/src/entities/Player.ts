@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 
 import { StateMachine } from '@/behaviors/StateMachine'
 import { KING_BODY, PLAYER } from '@/constants/GameConstants'
+import { ENTITY_EVENT } from '@/constants/events'
 import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
 import type { InputState } from '@/types/input'
 import type { PlayerState } from '@/types/player'
@@ -9,10 +10,16 @@ import type { PlayerState } from '@/types/player'
 const completeEvent = (animKey: string): string =>
   `${Phaser.Animations.Events.ANIMATION_COMPLETE_KEY}${animKey}`
 
+const HURT_TINT = 0xff6b6b
+
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private readonly stateMachine = new StateMachine<PlayerState>()
   private isAttacking = false
+  private isHurt = false
+  private isDead = false
   private inCutscene = false
+  private health: number = PLAYER.MAX_HEALTH
+  private invulnerableUntil = 0
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, TEXTURE_KEY.KING_IDLE, 0)
@@ -47,6 +54,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.inCutscene
   }
 
+  get currentHealth(): number {
+    return this.health
+  }
+
   beginCutscene(): void {
     this.inCutscene = true
     this.setVelocity(0, 0)
@@ -73,8 +84,42 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     })
   }
 
+  takeDamage(amount: number): void {
+    if (this.isDead || this.inCutscene || this.scene.time.now < this.invulnerableUntil) {
+      return
+    }
+
+    // cancel an in-progress attack so its (now interrupted) complete handler
+    // can't leave the King stuck with isAttacking forever
+    this.isAttacking = false
+    this.off(completeEvent(ANIM_KEY.KING_ATTACK))
+
+    this.health = Math.max(0, this.health - amount)
+    if (this.health === 0) {
+      this.die()
+      return
+    }
+
+    this.invulnerableUntil = this.scene.time.now + PLAYER.HURT_INVULN_MS
+    this.isHurt = true
+    this.setVelocityX(0)
+    this.setTint(HURT_TINT)
+    this.stateMachine.setState('hurt')
+    this.once(completeEvent(ANIM_KEY.KING_HIT), () => {
+      this.isHurt = false
+    })
+    this.scene.time.delayedCall(PLAYER.HURT_INVULN_MS, () => this.clearTint())
+  }
+
+  bounce(): void {
+    if (this.isDead) {
+      return
+    }
+    this.setVelocityY(-PLAYER.STOMP_BOUNCE)
+  }
+
   update(input: InputState): void {
-    if (this.inCutscene) {
+    if (this.inCutscene || this.isDead) {
       return
     }
 
@@ -84,6 +129,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private handleInput(input: InputState): void {
     const body = this.body as Phaser.Physics.Arcade.Body
+
+    if (this.isHurt) {
+      return
+    }
 
     if (input.left) {
       this.setVelocityX(-PLAYER.SPEED)
@@ -105,7 +154,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private resolveState(): void {
-    if (this.isAttacking) {
+    if (this.isAttacking || this.isHurt) {
       return
     }
 
@@ -123,8 +172,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private enterAttack(): void {
     this.isAttacking = true
     this.play(ANIM_KEY.KING_ATTACK, true)
-    this.once(`${Phaser.Animations.Events.ANIMATION_COMPLETE_KEY}${ANIM_KEY.KING_ATTACK}`, () => {
+    this.scene.events.emit(ENTITY_EVENT.PLAYER_ATTACK, {
+      x: this.x,
+      y: this.y,
+      facingLeft: this.flipX,
+    })
+    this.once(completeEvent(ANIM_KEY.KING_ATTACK), () => {
       this.isAttacking = false
+    })
+  }
+
+  private die(): void {
+    this.isDead = true
+    this.setVelocity(0, 0)
+    this.clearTint()
+    this.stateMachine.setState('dead')
+    this.once(completeEvent(ANIM_KEY.KING_DEAD), () => {
+      this.scene.events.emit(ENTITY_EVENT.PLAYER_DIED)
     })
   }
 }
