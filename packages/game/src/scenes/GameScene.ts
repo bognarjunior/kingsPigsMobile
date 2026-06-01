@@ -2,12 +2,15 @@ import Phaser from 'phaser'
 
 import { COLORS, KING_BODY, KING_SPRITE } from '@/constants/GameConstants'
 import { GAME_EVENT } from '@/constants/events'
-import { LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY, TILESET_NAME } from '@/constants/keys'
+import { LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
+import { TILESET } from '@/constants/tiles'
 import { Door } from '@/entities/Door'
 import { Player } from '@/entities/Player'
+import { LEVEL_DEFINITIONS, nextLevelKey } from '@/levels'
 import { CameraSystem } from '@/systems/CameraSystem'
 import { InputSystem } from '@/systems/InputSystem'
-import type { LevelPhase } from '@/types/level'
+import { LevelBuilder } from '@/systems/LevelBuilder'
+import type { LevelInit, LevelPhase } from '@/types/level'
 import { VirtualControls } from '@/ui/VirtualControls'
 import { sendToApp } from '@/utils/bridge'
 
@@ -21,16 +24,26 @@ export class GameScene extends Phaser.Scene {
   private inputSystem!: InputSystem
   private virtualControls!: VirtualControls
   private phase: LevelPhase = 'intro'
+  private levelKey: string = TILEMAP_KEY.LEVEL1
 
   constructor() {
     super(SCENE_KEY.GAME)
+  }
+
+  init(data: Partial<LevelInit>): void {
+    this.levelKey = data.levelKey ?? TILEMAP_KEY.LEVEL1
   }
 
   create(): void {
     this.phase = 'intro'
     this.cameras.main.setBackgroundColor(COLORS.BACKGROUND)
 
-    const map = this.make.tilemap({ key: TILEMAP_KEY.LEVEL1 })
+    const definition = LEVEL_DEFINITIONS[this.levelKey]
+    if (definition) {
+      LevelBuilder.ensure(this, this.levelKey, definition)
+    }
+
+    const map = this.make.tilemap({ key: this.levelKey })
     const solidLayer = this.buildLayers(map)
 
     const entryDoorPoint = this.spawnPoint(map, SPAWN.ENTRY_DOOR)
@@ -89,7 +102,7 @@ export class GameScene extends Phaser.Scene {
       this.player.exitIntoDoor(() => {
         this.exitDoor.close(() => {
           sendToApp(GAME_EVENT.LEVEL_COMPLETE)
-          this.scene.restart()
+          this.scene.restart({ levelKey: nextLevelKey(this.levelKey) })
         })
       })
     })
@@ -109,19 +122,46 @@ export class GameScene extends Phaser.Scene {
   }
 
   private buildLayers(map: Phaser.Tilemaps.Tilemap): Phaser.Tilemaps.TilemapLayer {
-    const tileset = map.addTilesetImage(TILESET_NAME, TEXTURE_KEY.TERRAIN)
-    if (!tileset) {
-      throw new Error('terrain tileset could not be added to the tilemap')
+    const tilesets = this.addTilesets(map)
+
+    if (map.getLayerIndexByName(LAYER.BACKGROUND) !== null) {
+      map.createLayer(LAYER.BACKGROUND, tilesets, 0, 0)
+    }
+    if (map.getLayerIndexByName(LAYER.DECORATIONS) !== null) {
+      map.createLayer(LAYER.DECORATIONS, tilesets, 0, 0)
     }
 
-    map.createLayer(LAYER.BACKGROUND, tileset, 0, 0)
-    const solidLayer = map.createLayer(LAYER.SOLID, tileset, 0, 0)
+    const solidLayer = map.createLayer(LAYER.SOLID, tilesets, 0, 0)
     if (!solidLayer) {
       throw new Error('solid layer could not be created from the tilemap')
     }
 
     solidLayer.setCollisionByExclusion([-1])
     return solidLayer
+  }
+
+  private addTilesets(map: Phaser.Tilemaps.Tilemap): Phaser.Tilemaps.Tileset[] {
+    const sources: Record<string, string> = {
+      [TILESET.TERRAIN.name]: TEXTURE_KEY.TERRAIN,
+      [TILESET.DECORATIONS.name]: TEXTURE_KEY.DECORATIONS,
+    }
+
+    const tilesets: Phaser.Tilemaps.Tileset[] = []
+    map.tilesets.forEach((declared) => {
+      const textureKey = sources[declared.name]
+      if (!textureKey) {
+        return
+      }
+      const tileset = map.addTilesetImage(declared.name, textureKey)
+      if (tileset) {
+        tilesets.push(tileset)
+      }
+    })
+
+    if (tilesets.length === 0) {
+      throw new Error(`no known tileset found for level "${this.levelKey}"`)
+    }
+    return tilesets
   }
 
   private handleShutdown(): void {

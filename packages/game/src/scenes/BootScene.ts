@@ -19,6 +19,7 @@ import doorIdleUrl from '@/assets/door/idle.png'
 import doorOpeningUrl from '@/assets/door/opening.png'
 import doorClosingUrl from '@/assets/door/closing.png'
 import terrainUrl from '@/assets/tiles/terrain.png'
+import decorationsUrl from '@/assets/tiles/decorations.png'
 import level1 from '@/assets/levels/level1.json'
 
 export class BootScene extends Phaser.Scene {
@@ -56,6 +57,7 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet(TEXTURE_KEY.DOOR_CLOSING, doorClosingUrl, door)
 
     this.load.image(TEXTURE_KEY.TERRAIN, terrainUrl)
+    this.load.image(TEXTURE_KEY.DECORATIONS, decorationsUrl)
     this.load.tilemapTiledJSON(TILEMAP_KEY.LEVEL1, level1)
   }
 

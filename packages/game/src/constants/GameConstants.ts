@@ -4,7 +4,7 @@ export const DISPLAY = {
 } as const
 
 export const COLORS = {
-  BACKGROUND: 0x1a1a2e,
+  BACKGROUND: 0x3f3851,
   GROUND: 0x3d2b1f,
 } as const
 

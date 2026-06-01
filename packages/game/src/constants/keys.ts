@@ -17,6 +17,7 @@ export const TEXTURE_KEY = {
   PIG_IDLE: 'pig-idle',
   PIG_RUN: 'pig-run',
   TERRAIN: 'terrain',
+  DECORATIONS: 'decorations',
   DOOR_IDLE: 'door-idle',
   DOOR_OPENING: 'door-opening',
   DOOR_CLOSING: 'door-closing',
@@ -24,12 +25,14 @@ export const TEXTURE_KEY = {
 
 export const TILEMAP_KEY = {
   LEVEL1: 'level1',
+  LEVEL2: 'level2',
 } as const
 
 export const TILESET_NAME = 'terrain'
 
 export const LAYER = {
   BACKGROUND: 'background',
+  DECORATIONS: 'decorations',
   SOLID: 'solid',
 } as const
 
