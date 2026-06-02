@@ -27,6 +27,11 @@ export const DOOR_SPRITE = {
   FRAME_HEIGHT: 56,
 } as const
 
+export const HEART_SPRITE = {
+  FRAME_WIDTH: 18,
+  FRAME_HEIGHT: 14,
+} as const
+
 export const KING_BODY = {
   WIDTH: 37,
   HEIGHT: 26,
@@ -81,7 +86,9 @@ export const PLAYER = {
   JUMP_VELOCITY: -380,
   ATTACK_DAMAGE: 25,
   ATTACK_RANGE: 44,
-  MAX_HEALTH: 100,
+  MAX_HEARTS: 3,
+  MAX_HEARTS_CAP: 10,
+  HEARTS_PER_MAX_UP: 10,
   HURT_INVULN_MS: 1500,
   STOMP_BOUNCE: 260,
   SPAWN_X: 80,
@@ -98,6 +105,7 @@ export const PIG = {
   PATROL_DISTANCE: 120,
   DETECTION_RANGE: 200,
   ATTACK_DAMAGE: 15,
+  HEART_DAMAGE: 1,
   ATTACK_RANGE: 30,
   ATTACK_VERTICAL: 12,
   ATTACK_COOLDOWN_MS: 1200,
@@ -133,4 +141,24 @@ export const CONTROLS = {
 
 export const MENU = {
   TITLE_GAP: 20,
+} as const
+
+export const PICKUP = {
+  FLOAT_ABOVE_FLOOR: 16,
+  DEPTH: 8,
+} as const
+
+export const HUD = {
+  BAR_X: 6,
+  BAR_Y: 6,
+  DEPTH: 100,
+  // the Live Bar sliced into 3 tileable pieces: a left end (tail + 1st socket),
+  // a repeatable 1-socket middle, and a right end (last socket + tail). A bar of
+  // N hearts = left + (N-2) middles + right.
+  CAP_LEFT_WIDTH: 25,
+  MID_WIDTH: 11,
+  CAP_RIGHT_WIDTH: 30,
+  HEART_Y: 17,
+  LEFT_SOCKET_X: 20,
+  MID_FIRST_SOCKET_X: 31,
 } as const

@@ -1,6 +1,6 @@
 import { TILEMAP_KEY } from '@/constants/keys'
 import type { EnemySpawn } from '@/types/enemy'
-import type { LevelDefinition } from '@/types/level'
+import type { LevelDefinition, SpawnTile } from '@/types/level'
 
 import { level2 } from './level2'
 
@@ -18,6 +18,13 @@ export const LEVEL_ENEMIES: Readonly<Record<string, readonly EnemySpawn[]>> = {
     { type: 'pig', col: 16, row: 15, patrol: 2 },
     { type: 'pig', col: 28, row: 15, patrol: 1 },
   ],
+}
+
+// Heart pickups (raise the King's max hearts). row = the floor row the King
+// stands on; the heart floats just above it. Test heart in level 1.
+export const LEVEL_PICKUPS: Readonly<Record<string, readonly SpawnTile[]>> = {
+  // a test row of 10 hearts in level 1: heal as you go, and the 10th raises the max
+  [TILEMAP_KEY.LEVEL1]: [13, 16, 19, 22, 25, 28, 31, 34, 37, 40].map((col) => ({ col, row: 13 })),
 }
 
 // Play order; the exit door advances to the next level (wrapping to the first).
