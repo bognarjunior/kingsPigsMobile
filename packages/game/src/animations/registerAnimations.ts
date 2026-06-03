@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import { ANIM, DOOR_FRAMES, KING_FRAMES, PIG_FRAMES } from '@/constants/GameConstants'
+import { ANIM, COLLECTIBLE_FRAMES, DOOR_FRAMES, KING_FRAMES, PIG_FRAMES } from '@/constants/GameConstants'
 import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
 
 export function registerAnimations(scene: Phaser.Scene): void {
@@ -37,4 +37,8 @@ export function registerAnimations(scene: Phaser.Scene): void {
 
   create(ANIM_KEY.DOOR_OPENING, TEXTURE_KEY.DOOR_OPENING, DOOR_FRAMES.OPENING, ANIM.DOOR_FPS, false)
   create(ANIM_KEY.DOOR_CLOSING, TEXTURE_KEY.DOOR_CLOSING, DOOR_FRAMES.CLOSING, ANIM.DOOR_FPS, false)
+
+  create(ANIM_KEY.HEART_IDLE, TEXTURE_KEY.HEART, COLLECTIBLE_FRAMES.HEART, ANIM.IDLE_FPS, true)
+  create(ANIM_KEY.BIG_HEART_IDLE, TEXTURE_KEY.BIG_HEART, COLLECTIBLE_FRAMES.HEART, ANIM.IDLE_FPS, true)
+  create(ANIM_KEY.DIAMOND_IDLE, TEXTURE_KEY.BIG_DIAMOND, COLLECTIBLE_FRAMES.DIAMOND, ANIM.IDLE_FPS, true)
 }

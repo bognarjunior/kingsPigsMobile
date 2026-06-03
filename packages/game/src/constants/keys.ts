@@ -26,6 +26,9 @@ export const TEXTURE_KEY = {
   BAR_RIGHT: 'bar-right',
   HEART: 'heart',
   BIG_HEART: 'big-heart',
+  DIAMOND: 'diamond',
+  BIG_DIAMOND: 'big-diamond',
+  NUMBERS: 'numbers',
   DOOR_IDLE: 'door-idle',
   DOOR_OPENING: 'door-opening',
   DOOR_CLOSING: 'door-closing',
@@ -71,4 +74,7 @@ export const ANIM_KEY = {
   PIG_DEAD: 'pig-dead-anim',
   DOOR_OPENING: 'door-opening-anim',
   DOOR_CLOSING: 'door-closing-anim',
+  HEART_IDLE: 'heart-idle-anim',
+  BIG_HEART_IDLE: 'big-heart-idle-anim',
+  DIAMOND_IDLE: 'diamond-idle-anim',
 } as const

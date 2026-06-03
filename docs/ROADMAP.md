@@ -15,7 +15,7 @@ only the assets it actually uses (avoids the noise of unused files).
 | 2 | Animation and State Machine | ✅ Done |
 | 3 | Mobile virtual controls | ✅ Done |
 | 4 | Tilemap / playable level | ✅ Done (iOS sim; Pig + shake → Phase 5) |
-| 5 | HUD, collectibles, and progression | ⬜ Not started |
+| 5 | HUD, collectibles, and progression | 🚧 In progress |
 | 6 | Game ↔ app communication | ⬜ Not started |
 | 7 | Publishing | ⬜ Not started |
 
@@ -104,20 +104,24 @@ within the map bounds; the King moves over actual geometry. Verified on the iOS 
 
 ---
 
-## Phase 5 — HUD, collectibles, and progression
+## Phase 5 — HUD, collectibles, and progression 🚧
 
 Make it a real game loop: fight, collect, lose, retry.
 
-- [ ] Copy + normalize the HUD/collectible assets (lives & coins)
-- [ ] `CombatSystem`: the King's attack damages the Pig; the Pig can hurt the King
-- [ ] Health for player/enemies; wire the `hurt`/`dead` states to real damage
-- [ ] `HUD`: health bar + score/diamond counter
-- [ ] Collectibles (diamonds/hearts) with pickup, score, and heal effects
+- [x] Copy + normalize the HUD/collectible assets (hearts, live bar; diamonds 🚧)
+- [x] `CombatSystem`: the King's attack damages the Pig; the Pig can hurt the King
+- [x] Health for player/enemies; wire the `hurt`/`dead` states to real damage
+- [x] Basic Pig AI: front vision cone, chase, melee, knockback, stomp/stun, patrol pauses
+- [x] `HUD`: health bar (scalable sliced ribbon, 3→10 hearts) — diamond counter 🚧
+- [x] Heart pickup: heals + raises the max every 10 hearts; `LEVEL_PICKUPS` registry
+- [ ] Diamond pickup + score counter on the HUD 🚧 (in progress)
+- [ ] Heart/diamond idle animations (pulse/spin) 🚧 (in progress)
 - [ ] Checkpoint + respawn
-- [ ] Game over screen and restart flow
+- [ ] Game over screen and restart flow (today King death just restarts the level)
+- [ ] Extra pig types (bomb / box / cannon-match) and the King Pig boss
 
 **Acceptance:** attacking kills the Pig and the Pig can hurt the King; collecting items
-updates the HUD; dying shows game over and restart works. Verified on Android and iOS.
+updates the HUD; dying shows game over and restart works. Verified on the iOS Simulator.
 
 ---
 

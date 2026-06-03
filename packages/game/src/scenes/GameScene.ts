@@ -2,10 +2,10 @@ import Phaser from 'phaser'
 
 import { COLORS, COMBAT, KING_BODY, KING_SPRITE, PICKUP, PIG_BODY, PIG_SPRITE } from '@/constants/GameConstants'
 import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
-import { LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
+import { ANIM_KEY, LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 import { TILE_SIZE, TILESET } from '@/constants/tiles'
 import { Door } from '@/entities/Door'
-import { HeartPickup } from '@/entities/HeartPickup'
+import { Pickup } from '@/entities/Pickup'
 import { Pig } from '@/entities/Pig'
 import { Player } from '@/entities/Player'
 import { LEVEL_DEFINITIONS, LEVEL_ENEMIES, LEVEL_PICKUPS, nextLevelKey } from '@/levels'
@@ -14,7 +14,8 @@ import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
 import type { EnemySpawn } from '@/types/enemy'
-import type { LevelInit, LevelPhase } from '@/types/level'
+import type { LevelInit, LevelPhase, PickupSpawn } from '@/types/level'
+import { DiamondCounter } from '@/ui/DiamondCounter'
 import { HealthBar } from '@/ui/HealthBar'
 import { VirtualControls } from '@/ui/VirtualControls'
 import { sendToApp } from '@/utils/bridge'
@@ -69,6 +70,7 @@ export class GameScene extends Phaser.Scene {
     this.enemies = this.spawnEnemies(LEVEL_ENEMIES[this.levelKey] ?? [], solidLayer)
     new CombatSystem(this, this.player, this.enemies)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
+    new DiamondCounter(this, this.player.currentDiamonds)
     this.spawnPickups(LEVEL_PICKUPS[this.levelKey] ?? [])
     this.events.once(ENTITY_EVENT.PLAYER_DIED, () => this.scene.restart({ levelKey: this.levelKey }))
 
@@ -126,21 +128,26 @@ export class GameScene extends Phaser.Scene {
     return floorY - (PIG_BODY.OFFSET_Y + PIG_BODY.HEIGHT - PIG_SPRITE.FRAME_HEIGHT / 2)
   }
 
-  private spawnPickups(spawns: readonly { col: number; row: number }[]): void {
+  private spawnPickups(spawns: readonly PickupSpawn[]): void {
     spawns.forEach((spawn) => {
       const x = spawn.col * TILE_SIZE
       const y = spawn.row * TILE_SIZE - PICKUP.FLOAT_ABOVE_FLOOR
-      const heart = new HeartPickup(this, x, y)
-      this.physics.add.overlap(this.player, heart, () => this.collectHeart(heart))
+      if (spawn.kind === 'heart') {
+        const heart = new Pickup(this, x, y, TEXTURE_KEY.BIG_HEART, ANIM_KEY.BIG_HEART_IDLE)
+        this.physics.add.overlap(this.player, heart, () => this.collectPickup(heart, () => this.player.collectHeart()))
+      } else {
+        const diamond = new Pickup(this, x, y, TEXTURE_KEY.BIG_DIAMOND, ANIM_KEY.DIAMOND_IDLE)
+        this.physics.add.overlap(this.player, diamond, () => this.collectPickup(diamond, () => this.player.collectDiamond()))
+      }
     })
   }
 
-  private collectHeart(heart: HeartPickup): void {
-    if (!heart.active) {
+  private collectPickup(pickup: Pickup, onCollect: () => void): void {
+    if (!pickup.active) {
       return
     }
-    this.player.collectHeart()
-    heart.collect()
+    onCollect()
+    pickup.collect()
   }
 
   private startIntro(): void {

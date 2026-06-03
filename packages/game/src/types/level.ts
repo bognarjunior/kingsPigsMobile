@@ -42,6 +42,14 @@ export interface SpawnTile {
   readonly row: number
 }
 
+export type PickupKind = 'heart' | 'diamond'
+
+export interface PickupSpawn {
+  readonly kind: PickupKind
+  readonly col: number
+  readonly row: number
+}
+
 export interface LevelSpawns {
   readonly player: SpawnTile
   readonly entryDoor: SpawnTile

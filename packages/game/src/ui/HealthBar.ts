@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 
 import { HUD } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
-import { TEXTURE_KEY } from '@/constants/keys'
+import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
 
 // On-screen King health: the Live Bar assembled from sliced pieces (left end +
 // one repeatable socket per heart + right end), so it grows with the King's
@@ -10,7 +10,7 @@ import { TEXTURE_KEY } from '@/constants/keys'
 // player:max-hearts (rebuild). Entities never reference it directly.
 export class HealthBar {
   private pieces: Phaser.GameObjects.Image[] = []
-  private hearts: Phaser.GameObjects.Image[] = []
+  private hearts: Phaser.GameObjects.Sprite[] = []
   private currentHearts: number
 
   constructor(private readonly scene: Phaser.Scene, capacity: number, initialHearts: number) {
@@ -30,9 +30,10 @@ export class HealthBar {
     this.pieces = this.buildRibbon(slots)
     this.hearts = this.heartPositions(slots).map((x) =>
       this.scene.add
-        .image(HUD.BAR_X + x, HUD.BAR_Y + HUD.HEART_Y, TEXTURE_KEY.HEART, 0)
+        .sprite(HUD.BAR_X + x, HUD.BAR_Y + HUD.HEART_Y, TEXTURE_KEY.HEART)
         .setScrollFactor(0)
-        .setDepth(HUD.DEPTH + 1),
+        .setDepth(HUD.DEPTH + 1)
+        .play(ANIM_KEY.HEART_IDLE),
     )
     this.refresh()
   }

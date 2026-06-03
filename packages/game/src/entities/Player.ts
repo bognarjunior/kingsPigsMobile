@@ -21,6 +21,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private hearts: number = PLAYER.MAX_HEARTS
   private maxHeartsCount: number = PLAYER.MAX_HEARTS
   private heartsCollected = 0
+  private diamonds = 0
   private invulnerableUntil = 0
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -62,6 +63,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   get maxHearts(): number {
     return this.maxHeartsCount
+  }
+
+  get currentDiamonds(): number {
+    return this.diamonds
+  }
+
+  collectDiamond(): void {
+    this.diamonds += 1
+    this.scene.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, this.diamonds)
   }
 
   // collecting a heart heals one (up to the current max) and counts toward a
@@ -157,10 +167,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (input.left) {
       this.setVelocityX(-PLAYER.SPEED)
-      this.setFlipX(true)
+      this.face(true)
     } else if (input.right) {
       this.setVelocityX(PLAYER.SPEED)
-      this.setFlipX(false)
+      this.face(false)
     } else {
       this.setVelocityX(0)
     }
@@ -172,6 +182,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (input.attack && !this.isAttacking && body.blocked.down) {
       this.stateMachine.setState('attack')
     }
+  }
+
+  private face(facingLeft: boolean): void {
+    this.setFlipX(facingLeft)
+    const body = this.body as Phaser.Physics.Arcade.Body
+    body.setOffset(facingLeft ? KING_BODY.OFFSET_X_FLIPPED : KING_BODY.OFFSET_X, KING_BODY.OFFSET_Y)
   }
 
   private resolveState(): void {

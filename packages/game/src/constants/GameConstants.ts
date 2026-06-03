@@ -32,10 +32,22 @@ export const HEART_SPRITE = {
   FRAME_HEIGHT: 14,
 } as const
 
+export const NUMBER_SPRITE = {
+  FRAME_WIDTH: 6,
+  FRAME_HEIGHT: 8,
+} as const
+
+export const COLLECTIBLE_FRAMES = {
+  HEART: 8,
+  DIAMOND: 10,
+} as const
+
 export const KING_BODY = {
-  WIDTH: 37,
+  WIDTH: 16,
   HEIGHT: 26,
-  OFFSET_X: 9,
+  OFFSET_X: 18,
+  // facing left mirrors the body to the other side of the 78px frame
+  OFFSET_X_FLIPPED: 44,
   OFFSET_Y: 18,
 } as const
 
@@ -161,4 +173,9 @@ export const HUD = {
   HEART_Y: 17,
   LEFT_SOCKET_X: 20,
   MID_FIRST_SOCKET_X: 31,
+  DIAMOND_ICON_X: 12,
+  DIAMOND_ICON_Y: 48,
+  DIGIT_X: 24,
+  DIGIT_Y: 45,
+  DIGIT_SPACING: 7,
 } as const

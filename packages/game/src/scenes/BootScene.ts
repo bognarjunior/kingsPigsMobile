@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 
 import { registerAnimations } from '@/animations/registerAnimations'
-import { DOOR_SPRITE, HEART_SPRITE, KING_SPRITE, PIG_SPRITE } from '@/constants/GameConstants'
+import { DOOR_SPRITE, HEART_SPRITE, KING_SPRITE, NUMBER_SPRITE, PIG_SPRITE } from '@/constants/GameConstants'
 import { SCENE_KEY, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 
 import kingIdleUrl from '@/assets/king/idle.png'
@@ -27,7 +27,10 @@ import barLeftUrl from '@/assets/hud/bar-left.png'
 import barMidUrl from '@/assets/hud/bar-mid.png'
 import barRightUrl from '@/assets/hud/bar-right.png'
 import heartUrl from '@/assets/hud/heart.png'
+import diamondUrl from '@/assets/hud/diamond.png'
+import numbersUrl from '@/assets/hud/numbers.png'
 import bigHeartUrl from '@/assets/pickups/heart.png'
+import bigDiamondUrl from '@/assets/pickups/diamond.png'
 import level1 from '@/assets/levels/level1.json'
 
 export class BootScene extends Phaser.Scene {
@@ -79,6 +82,13 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet(TEXTURE_KEY.BIG_HEART, bigHeartUrl, {
       frameWidth: HEART_SPRITE.FRAME_WIDTH,
       frameHeight: HEART_SPRITE.FRAME_HEIGHT,
+    })
+    const diamond = { frameWidth: HEART_SPRITE.FRAME_WIDTH, frameHeight: HEART_SPRITE.FRAME_HEIGHT }
+    this.load.spritesheet(TEXTURE_KEY.DIAMOND, diamondUrl, diamond)
+    this.load.spritesheet(TEXTURE_KEY.BIG_DIAMOND, bigDiamondUrl, diamond)
+    this.load.spritesheet(TEXTURE_KEY.NUMBERS, numbersUrl, {
+      frameWidth: NUMBER_SPRITE.FRAME_WIDTH,
+      frameHeight: NUMBER_SPRITE.FRAME_HEIGHT,
     })
     this.load.tilemapTiledJSON(TILEMAP_KEY.LEVEL1, level1)
   }

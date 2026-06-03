@@ -16,5 +16,6 @@ export const ENTITY_EVENT = {
   ENEMY_ATTACK: 'enemy:attack',
   PLAYER_HEALTH: 'player:health',
   PLAYER_MAX_HEARTS: 'player:max-hearts',
+  PLAYER_DIAMONDS: 'player:diamonds',
   PLAYER_DIED: 'player:died',
 } as const
