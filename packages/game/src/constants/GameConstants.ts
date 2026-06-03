@@ -128,6 +128,33 @@ export const BOMB = {
   PICK_REACH: 8,
 } as const
 
+export const BOX_SPRITE = {
+  FRAME_WIDTH: 22,
+  FRAME_HEIGHT: 16,
+} as const
+
+export const BOX_PIECE_SPRITE = {
+  FRAME_WIDTH: 10,
+  FRAME_HEIGHT: 10,
+} as const
+
+export const BOX_BODY = {
+  WIDTH: 18,
+  HEIGHT: 14,
+  OFFSET_X: 2,
+  OFFSET_Y: 2,
+} as const
+
+export const BOX = {
+  PIECE_COUNT: 4,
+  PIECE_SPEED_MIN: 40,
+  PIECE_SPEED_MAX: 90,
+  PIECE_UP_MIN: 120,
+  PIECE_UP_MAX: 210,
+  PIECE_LIFETIME_MS: 600,
+  DEPTH: 7,
+} as const
+
 export const DOOR_FRAMES = {
   OPENING: 5,
   CLOSING: 3,

@@ -69,8 +69,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.diamonds
   }
 
-  collectDiamond(): void {
-    this.diamonds += 1
+  collectDiamond(amount = 1): void {
+    this.diamonds += amount
     this.scene.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, this.diamonds)
   }
 

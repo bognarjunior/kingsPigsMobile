@@ -12,7 +12,7 @@ export const LEVEL_DEFINITIONS: Readonly<Record<string, LevelDefinition>> = {
 // Everything that populates a level lives here, kept apart from the map source so
 // it works whether the geometry is a JSON file or built by LevelBuilder.
 //   enemies    — pig placements (col/row + patrol radius in tiles)
-//   pickups    — collectibles; row = the floor row, the item floats just above
+//   boxes      — breakable crates on the floor row; the King smashes them for loot
 //   bombSupply — loose bombs a bomb pig hunts, picks up to re-arm, then throws
 export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
   [TILEMAP_KEY.LEVEL1]: {
@@ -20,9 +20,15 @@ export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
       { type: 'pig', col: 10, row: 13, patrol: 3 },
       { type: 'bomb', col: 30, row: 13, patrol: 2 },
     ],
-    pickups: [
-      ...[13, 16, 19, 22, 25, 28, 31, 34, 37, 40].map((col) => ({ kind: 'heart' as const, col, row: 13 })),
-      ...[11, 31, 44].map((col) => ({ kind: 'diamond' as const, col, row: 11 })),
+    boxes: [
+      { col: 8, row: 13, loot: { kind: 'empty' } },
+      { col: 14, row: 13, loot: { kind: 'heart' } },
+      { col: 22, row: 13, loot: { kind: 'diamonds', amount: 1 } },
+      { col: 24, row: 13, loot: { kind: 'empty' } },
+      { col: 34, row: 13, loot: { kind: 'heart' } },
+      { col: 38, row: 13, loot: { kind: 'diamonds', amount: 1 } },
+      { col: 40, row: 13, loot: { kind: 'heart' } },
+      { col: 44, row: 13, loot: { kind: 'diamonds', amount: 1 } },
     ],
     bombSupply: [18, 26, 36, 42].map((col) => ({ col, row: 13 })),
   },
@@ -31,12 +37,12 @@ export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
       { type: 'pig', col: 16, row: 15, patrol: 2 },
       { type: 'pig', col: 28, row: 15, patrol: 1 },
     ],
-    pickups: [],
+    boxes: [],
     bombSupply: [],
   },
 }
 
-const EMPTY_CONTENT: LevelContent = { enemies: [], pickups: [], bombSupply: [] }
+const EMPTY_CONTENT: LevelContent = { enemies: [], boxes: [], bombSupply: [] }
 
 export function levelContent(key: string): LevelContent {
   return LEVEL_CONTENT[key] ?? EMPTY_CONTENT

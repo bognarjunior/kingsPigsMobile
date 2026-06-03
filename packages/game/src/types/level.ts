@@ -52,6 +52,24 @@ export interface PickupSpawn {
   readonly row: number
 }
 
+// what a crate holds; authored per box (not random)
+export type Loot =
+  | { readonly kind: 'empty' }
+  | { readonly kind: 'heart' }
+  | { readonly kind: 'diamonds'; readonly amount: number }
+
+export interface BoxPlacement {
+  readonly col: number
+  readonly row: number
+  readonly loot: Loot
+}
+
+export interface BoxBrokenEvent {
+  readonly x: number
+  readonly y: number
+  readonly loot: Loot
+}
+
 export interface LevelSpawns {
   readonly player: SpawnTile
   readonly entryDoor: SpawnTile
@@ -62,7 +80,7 @@ export interface LevelSpawns {
 // geometry in LevelDefinition. One per level, whatever the map's source.
 export interface LevelContent {
   readonly enemies: readonly EnemySpawn[]
-  readonly pickups: readonly PickupSpawn[]
+  readonly boxes: readonly BoxPlacement[]
   readonly bombSupply: readonly SpawnTile[]
 }
 

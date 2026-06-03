@@ -3,6 +3,7 @@ import Phaser from 'phaser'
 import { registerAnimations } from '@/animations/registerAnimations'
 import {
   BOMB_SPRITE,
+  BOX_PIECE_SPRITE,
   DOOR_SPRITE,
   HEART_SPRITE,
   KING_SPRITE,
@@ -33,6 +34,8 @@ import pigBombPickUrl from '@/assets/pig-bomb/pick.png'
 import bombOffUrl from '@/assets/bomb/off.png'
 import bombOnUrl from '@/assets/bomb/on.png'
 import bombBoomUrl from '@/assets/bomb/boom.png'
+import boxIdleUrl from '@/assets/box/idle.png'
+import boxPiecesUrl from '@/assets/box/pieces.png'
 import doorIdleUrl from '@/assets/door/idle.png'
 import doorOpeningUrl from '@/assets/door/opening.png'
 import doorClosingUrl from '@/assets/door/closing.png'
@@ -90,6 +93,12 @@ export class BootScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEY.BOMB_OFF, bombOffUrl)
     this.load.spritesheet(TEXTURE_KEY.BOMB_ON, bombOnUrl, bomb)
     this.load.spritesheet(TEXTURE_KEY.BOMB_BOOM, bombBoomUrl, bomb)
+
+    this.load.image(TEXTURE_KEY.BOX_IDLE, boxIdleUrl)
+    this.load.spritesheet(TEXTURE_KEY.BOX_PIECES, boxPiecesUrl, {
+      frameWidth: BOX_PIECE_SPRITE.FRAME_WIDTH,
+      frameHeight: BOX_PIECE_SPRITE.FRAME_HEIGHT,
+    })
 
     const door = { frameWidth: DOOR_SPRITE.FRAME_WIDTH, frameHeight: DOOR_SPRITE.FRAME_HEIGHT }
     this.load.spritesheet(TEXTURE_KEY.DOOR_IDLE, doorIdleUrl, door)

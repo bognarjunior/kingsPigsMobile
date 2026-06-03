@@ -26,6 +26,8 @@ export const TEXTURE_KEY = {
   BOMB_OFF: 'bomb-off',
   BOMB_ON: 'bomb-on',
   BOMB_BOOM: 'bomb-boom',
+  BOX_IDLE: 'box-idle',
+  BOX_PIECES: 'box-pieces',
   TERRAIN: 'terrain',
   DECORATIONS: 'decorations',
   BAR_LEFT: 'bar-left',

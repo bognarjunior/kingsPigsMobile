@@ -1,11 +1,23 @@
 import Phaser from 'phaser'
 
-import { BOMB_BODY, BOMB_SPRITE, COLORS, COMBAT, DOOR, KING_BODY, KING_SPRITE, PICKUP, PLAYER } from '@/constants/GameConstants'
+import {
+  BOMB_BODY,
+  BOMB_SPRITE,
+  BOX_BODY,
+  BOX_SPRITE,
+  COLORS,
+  COMBAT,
+  DOOR,
+  KING_BODY,
+  KING_SPRITE,
+  PLAYER,
+} from '@/constants/GameConstants'
 import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
 import { ANIM_KEY, LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 import { TILE_SIZE, TILESET } from '@/constants/tiles'
 import { Bomb } from '@/entities/Bomb'
 import { BombItem } from '@/entities/BombItem'
+import { BreakableBox } from '@/entities/BreakableBox'
 import { Door } from '@/entities/Door'
 import { Pickup } from '@/entities/Pickup'
 import { Pig } from '@/entities/Pig'
@@ -18,7 +30,7 @@ import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
 import type { EnemySpawn, PigBody, ThrowBombEvent } from '@/types/enemy'
 import type { InputState } from '@/types/input'
-import type { LevelInit, LevelPhase, PickupSpawn, SpawnTile } from '@/types/level'
+import type { BoxBrokenEvent, BoxPlacement, LevelInit, LevelPhase, SpawnTile } from '@/types/level'
 import { DiamondCounter } from '@/ui/DiamondCounter'
 import { HealthBar } from '@/ui/HealthBar'
 import { VirtualControls } from '@/ui/VirtualControls'
@@ -76,12 +88,13 @@ export class GameScene extends Phaser.Scene {
     const content = levelContent(this.levelKey)
     const bombSupply = this.spawnBombSupply(content.bombSupply)
     this.enemies = this.spawnEnemies(content.enemies, solidLayer, bombSupply)
-    new CombatSystem(this, this.player, this.enemies)
+    const boxes = this.spawnBoxes(content.boxes)
+    new CombatSystem(this, this.player, this.enemies, boxes)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, this.player.currentDiamonds)
-    this.spawnPickups(content.pickups)
     this.events.once(ENTITY_EVENT.PLAYER_DIED, () => this.scene.restart({ levelKey: this.levelKey }))
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
+    this.events.on(ENTITY_EVENT.BOX_BROKEN, this.dropLoot, this)
 
     const { widthInPixels, heightInPixels } = map
     this.physics.world.setBounds(0, 0, widthInPixels, heightInPixels)
@@ -225,18 +238,31 @@ export class GameScene extends Phaser.Scene {
     return floorY - (body.offsetY + body.height - body.frameHeight / 2)
   }
 
-  private spawnPickups(spawns: readonly PickupSpawn[]): void {
-    spawns.forEach((spawn) => {
-      const x = spawn.col * TILE_SIZE
-      const y = spawn.row * TILE_SIZE - PICKUP.FLOAT_ABOVE_FLOOR
-      if (spawn.kind === 'heart') {
-        const heart = new Pickup(this, x, y, TEXTURE_KEY.BIG_HEART, ANIM_KEY.BIG_HEART_IDLE)
-        this.physics.add.overlap(this.player, heart, () => this.collectPickup(heart, () => this.player.collectHeart()))
-      } else {
-        const diamond = new Pickup(this, x, y, TEXTURE_KEY.BIG_DIAMOND, ANIM_KEY.DIAMOND_IDLE)
-        this.physics.add.overlap(this.player, diamond, () => this.collectPickup(diamond, () => this.player.collectDiamond()))
-      }
+  private spawnBoxes(placements: readonly BoxPlacement[]): BreakableBox[] {
+    const floorBody = {
+      width: BOX_BODY.WIDTH,
+      height: BOX_BODY.HEIGHT,
+      offsetX: BOX_BODY.OFFSET_X,
+      offsetY: BOX_BODY.OFFSET_Y,
+      frameHeight: BOX_SPRITE.FRAME_HEIGHT,
+    }
+    return placements.map((placement) => {
+      const x = placement.col * TILE_SIZE
+      const y = this.groundedFor(placement.row * TILE_SIZE, floorBody)
+      return new BreakableBox(this, x, y, placement.loot)
     })
+  }
+
+  // a smashed crate announced its loot: drop a collectible where it broke
+  private dropLoot(event: BoxBrokenEvent): void {
+    if (event.loot.kind === 'heart') {
+      const heart = new Pickup(this, event.x, event.y, TEXTURE_KEY.BIG_HEART, ANIM_KEY.BIG_HEART_IDLE)
+      this.physics.add.overlap(this.player, heart, () => this.collectPickup(heart, () => this.player.collectHeart()))
+    } else if (event.loot.kind === 'diamonds') {
+      const amount = event.loot.amount
+      const diamond = new Pickup(this, event.x, event.y, TEXTURE_KEY.BIG_DIAMOND, ANIM_KEY.DIAMOND_IDLE)
+      this.physics.add.overlap(this.player, diamond, () => this.collectPickup(diamond, () => this.player.collectDiamond(amount)))
+    }
   }
 
   private collectPickup(pickup: Pickup, onCollect: () => void): void {
