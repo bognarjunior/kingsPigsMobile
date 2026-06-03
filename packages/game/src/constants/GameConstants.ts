@@ -133,6 +133,13 @@ export const DOOR_FRAMES = {
   CLOSING: 3,
 } as const
 
+export const DOOR = {
+  // how close (horizontally) the King must stand to a door to open it with attack
+  INTERACT_RANGE: 28,
+  // first level has no "back": the entry door lingers, then disappears
+  VANISH_DELAY_MS: 600,
+} as const
+
 export const ANIM = {
   IDLE_FPS: 8,
   RUN_FPS: 12,

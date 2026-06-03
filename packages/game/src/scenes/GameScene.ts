@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import { BOMB_BODY, BOMB_SPRITE, COLORS, COMBAT, KING_BODY, KING_SPRITE, PICKUP } from '@/constants/GameConstants'
+import { BOMB_BODY, BOMB_SPRITE, COLORS, COMBAT, DOOR, KING_BODY, KING_SPRITE, PICKUP, PLAYER } from '@/constants/GameConstants'
 import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
 import { ANIM_KEY, LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 import { TILE_SIZE, TILESET } from '@/constants/tiles'
@@ -11,12 +11,20 @@ import { Pickup } from '@/entities/Pickup'
 import { Pig } from '@/entities/Pig'
 import { PIG_CONFIGS } from '@/entities/pigConfigs'
 import { Player } from '@/entities/Player'
-import { LEVEL_BOMB_SUPPLY, LEVEL_DEFINITIONS, LEVEL_ENEMIES, LEVEL_PICKUPS, nextLevelKey } from '@/levels'
+import {
+  LEVEL_BOMB_SUPPLY,
+  LEVEL_DEFINITIONS,
+  LEVEL_ENEMIES,
+  LEVEL_PICKUPS,
+  nextLevelKey,
+  previousLevelKey,
+} from '@/levels'
 import { CameraSystem } from '@/systems/CameraSystem'
 import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
 import type { EnemySpawn, PigBody, ThrowBombEvent } from '@/types/enemy'
+import type { InputState } from '@/types/input'
 import type { LevelInit, LevelPhase, PickupSpawn, SpawnTile } from '@/types/level'
 import { DiamondCounter } from '@/ui/DiamondCounter'
 import { HealthBar } from '@/ui/HealthBar'
@@ -36,6 +44,7 @@ export class GameScene extends Phaser.Scene {
   private virtualControls!: VirtualControls
   private phase: LevelPhase = 'intro'
   private levelKey: string = TILEMAP_KEY.LEVEL1
+  private prevAttack = false
 
   constructor() {
     super(SCENE_KEY.GAME)
@@ -70,7 +79,6 @@ export class GameScene extends Phaser.Scene {
     this.player = new Player(this, playerSpawn.x, this.groundedY(playerSpawn.y))
     this.player.setDepth(PLAYER_DEPTH)
     this.physics.add.collider(this.player, solidLayer)
-    this.physics.add.overlap(this.player, this.exitDoor, this.handleExitReached, undefined, this)
 
     const bombSupply = this.spawnBombSupply(LEVEL_BOMB_SUPPLY[this.levelKey] ?? [])
     this.enemies = this.spawnEnemies(LEVEL_ENEMIES[this.levelKey] ?? [], solidLayer, bombSupply)
@@ -95,7 +103,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(): void {
-    this.player.update(this.inputSystem.getState())
+    const input = this.inputSystem.getState()
+    this.player.update(this.resolveDoorInteraction(input))
 
     if (this.phase !== 'play') {
       return
@@ -105,6 +114,52 @@ export class GameScene extends Phaser.Scene {
         enemy.update(this.player.x, this.player.y)
       }
     })
+  }
+
+  // The attack press doubles as "open door". A nearby door consumes the press
+  // (no hammer swing) unless a pig is in attack range — then combat wins.
+  private resolveDoorInteraction(input: InputState): InputState {
+    const attackEdge = input.attack && !this.prevAttack
+    this.prevAttack = input.attack
+
+    if (this.phase !== 'play' || !attackEdge) {
+      return input
+    }
+
+    const which = this.doorInFront()
+    if (!which || this.pigInAttackRange()) {
+      return input
+    }
+
+    this.enterDoor(which)
+    return { ...input, attack: false }
+  }
+
+  private doorInFront(): 'entry' | 'exit' | null {
+    const body = this.player.body as Phaser.Physics.Arcade.Body
+    if (!body.blocked.down) {
+      return null
+    }
+    if (this.isNearDoor(this.exitDoor)) {
+      return 'exit'
+    }
+    if (this.entryDoor.active && this.isNearDoor(this.entryDoor)) {
+      return 'entry'
+    }
+    return null
+  }
+
+  private isNearDoor(door: Door): boolean {
+    return Math.abs(this.player.x - door.x) <= DOOR.INTERACT_RANGE
+  }
+
+  private pigInAttackRange(): boolean {
+    return this.enemies.some(
+      (pig) =>
+        pig.isAlive &&
+        Math.abs(pig.x - this.player.x) <= PLAYER.ATTACK_RANGE &&
+        Math.abs(pig.y - this.player.y) <= COMBAT.VERTICAL_REACH,
+    )
   }
 
   private spawnEnemies(
@@ -205,25 +260,41 @@ export class GameScene extends Phaser.Scene {
     this.entryDoor.open(() => {
       this.player.setVisible(true)
       this.player.enterFromDoor(() => {
-        this.entryDoor.close()
+        this.entryDoor.close(() => this.dismissEntryDoorIfFirstLevel())
         this.phase = 'play'
       })
     })
   }
 
-  private handleExitReached(): void {
+  // first level has no way back: once the intro door shuts, let it linger then vanish
+  private dismissEntryDoorIfFirstLevel(): void {
+    if (previousLevelKey(this.levelKey) !== null) {
+      return
+    }
+    this.time.delayedCall(DOOR.VANISH_DELAY_MS, () => this.entryDoor.destroy())
+  }
+
+  private enterDoor(which: 'entry' | 'exit'): void {
     if (this.phase !== 'play') {
       return
     }
 
-    this.phase = 'outro'
-    this.player.setPosition(this.exitDoor.x, this.player.y)
+    const door = which === 'exit' ? this.exitDoor : this.entryDoor
+    const destination = which === 'exit' ? nextLevelKey(this.levelKey) : previousLevelKey(this.levelKey)
+    if (destination === null) {
+      return // no level behind the entry door (shouldn't happen: it vanished on level 1)
+    }
 
-    this.exitDoor.open(() => {
+    this.phase = 'outro'
+    this.player.beginCutscene()
+    this.player.setPosition(door.x, this.player.y)
+    door.open(() => {
       this.player.exitIntoDoor(() => {
-        this.exitDoor.close(() => {
-          sendToApp(GAME_EVENT.LEVEL_COMPLETE)
-          this.scene.restart({ levelKey: nextLevelKey(this.levelKey) })
+        door.close(() => {
+          if (which === 'exit') {
+            sendToApp(GAME_EVENT.LEVEL_COMPLETE)
+          }
+          this.scene.restart({ levelKey: destination })
         })
       })
     })

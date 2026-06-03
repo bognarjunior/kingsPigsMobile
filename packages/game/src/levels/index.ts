@@ -45,3 +45,9 @@ export function nextLevelKey(current: string): string {
   const index = LEVEL_SEQUENCE.indexOf(current)
   return LEVEL_SEQUENCE[(index + 1) % LEVEL_SEQUENCE.length]
 }
+
+// previous level for the back door; null on the first level (no way back)
+export function previousLevelKey(current: string): string | null {
+  const index = LEVEL_SEQUENCE.indexOf(current)
+  return index <= 0 ? null : LEVEL_SEQUENCE[index - 1]
+}
