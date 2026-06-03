@@ -78,6 +78,56 @@ export const PIG_FRAMES = {
   DEAD: 4,
 } as const
 
+export const PIG_BOMB_SPRITE = {
+  FRAME_WIDTH: 26,
+  FRAME_HEIGHT: 26,
+} as const
+
+export const PIG_BOMB_BODY = {
+  WIDTH: 14,
+  HEIGHT: 15,
+  OFFSET_X: 6,
+  OFFSET_Y: 10,
+} as const
+
+export const PIG_BOMB_FRAMES = {
+  IDLE: 10,
+  RUN: 6,
+  PICK: 4,
+  THROW: 5,
+} as const
+
+export const BOMB_SPRITE = {
+  FRAME_WIDTH: 52,
+  FRAME_HEIGHT: 56,
+} as const
+
+export const BOMB_BODY = {
+  WIDTH: 16,
+  HEIGHT: 16,
+  OFFSET_X: 18,
+  OFFSET_Y: 22,
+} as const
+
+export const BOMB_FRAMES = {
+  ON: 4,
+  BOOM: 6,
+} as const
+
+export const BOMB = {
+  THROW_RANGE: 170,
+  THROW_COOLDOWN_MS: 2200,
+  THROW_SPEED_X: 150,
+  THROW_SPEED_Y: -300,
+  FUSE_MS: 1500,
+  RADIUS: 34,
+  DAMAGE: 1,
+  FUSE_FPS: 10,
+  BOOM_FPS: 14,
+  // how close an unarmed thrower stands to a grounded bomb before grabbing it
+  PICK_REACH: 8,
+} as const
+
 export const DOOR_FRAMES = {
   OPENING: 5,
   CLOSING: 3,

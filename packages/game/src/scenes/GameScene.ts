@@ -1,20 +1,23 @@
 import Phaser from 'phaser'
 
-import { COLORS, COMBAT, KING_BODY, KING_SPRITE, PICKUP, PIG_BODY, PIG_SPRITE } from '@/constants/GameConstants'
+import { BOMB_BODY, BOMB_SPRITE, COLORS, COMBAT, KING_BODY, KING_SPRITE, PICKUP } from '@/constants/GameConstants'
 import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
 import { ANIM_KEY, LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 import { TILE_SIZE, TILESET } from '@/constants/tiles'
+import { Bomb } from '@/entities/Bomb'
+import { BombItem } from '@/entities/BombItem'
 import { Door } from '@/entities/Door'
 import { Pickup } from '@/entities/Pickup'
 import { Pig } from '@/entities/Pig'
+import { PIG_CONFIGS } from '@/entities/pigConfigs'
 import { Player } from '@/entities/Player'
-import { LEVEL_DEFINITIONS, LEVEL_ENEMIES, LEVEL_PICKUPS, nextLevelKey } from '@/levels'
+import { LEVEL_BOMB_SUPPLY, LEVEL_DEFINITIONS, LEVEL_ENEMIES, LEVEL_PICKUPS, nextLevelKey } from '@/levels'
 import { CameraSystem } from '@/systems/CameraSystem'
 import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
-import type { EnemySpawn } from '@/types/enemy'
-import type { LevelInit, LevelPhase, PickupSpawn } from '@/types/level'
+import type { EnemySpawn, PigBody, ThrowBombEvent } from '@/types/enemy'
+import type { LevelInit, LevelPhase, PickupSpawn, SpawnTile } from '@/types/level'
 import { DiamondCounter } from '@/ui/DiamondCounter'
 import { HealthBar } from '@/ui/HealthBar'
 import { VirtualControls } from '@/ui/VirtualControls'
@@ -25,6 +28,7 @@ const PLAYER_DEPTH = 10
 
 export class GameScene extends Phaser.Scene {
   private player!: Player
+  private solidLayer!: Phaser.Tilemaps.TilemapLayer
   private entryDoor!: Door
   private exitDoor!: Door
   private enemies: Pig[] = []
@@ -52,6 +56,7 @@ export class GameScene extends Phaser.Scene {
 
     const map = this.make.tilemap({ key: this.levelKey })
     const solidLayer = this.buildLayers(map)
+    this.solidLayer = solidLayer
 
     const entryDoorPoint = this.spawnPoint(map, SPAWN.ENTRY_DOOR)
     const exitDoorPoint = this.spawnPoint(map, SPAWN.EXIT_DOOR)
@@ -67,12 +72,14 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, solidLayer)
     this.physics.add.overlap(this.player, this.exitDoor, this.handleExitReached, undefined, this)
 
-    this.enemies = this.spawnEnemies(LEVEL_ENEMIES[this.levelKey] ?? [], solidLayer)
+    const bombSupply = this.spawnBombSupply(LEVEL_BOMB_SUPPLY[this.levelKey] ?? [])
+    this.enemies = this.spawnEnemies(LEVEL_ENEMIES[this.levelKey] ?? [], solidLayer, bombSupply)
     new CombatSystem(this, this.player, this.enemies)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, this.player.currentDiamonds)
     this.spawnPickups(LEVEL_PICKUPS[this.levelKey] ?? [])
     this.events.once(ENTITY_EVENT.PLAYER_DIED, () => this.scene.restart({ levelKey: this.levelKey }))
+    this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
 
     const { widthInPixels, heightInPixels } = map
     this.physics.world.setBounds(0, 0, widthInPixels, heightInPixels)
@@ -100,14 +107,55 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-  private spawnEnemies(spawns: readonly EnemySpawn[], solidLayer: Phaser.Tilemaps.TilemapLayer): Pig[] {
+  private spawnEnemies(
+    spawns: readonly EnemySpawn[],
+    solidLayer: Phaser.Tilemaps.TilemapLayer,
+    bombSupply: Phaser.Physics.Arcade.Group,
+  ): Pig[] {
     return spawns.map((spawn) => {
+      const config = PIG_CONFIGS[spawn.type]
       const x = spawn.col * TILE_SIZE
-      const pig = new Pig(this, x, this.groundedYForEnemy(spawn.row * TILE_SIZE), spawn.patrol * TILE_SIZE)
+      const y = this.groundedFor(spawn.row * TILE_SIZE, config.body)
+      const pig = new Pig(this, x, y, spawn.patrol * TILE_SIZE, config)
       this.physics.add.collider(pig, solidLayer)
       this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
+      if (config.seeksAmmo) {
+        pig.setAmmoSource(bombSupply)
+        this.physics.add.overlap(pig, bombSupply, (_, item) => this.tryArm(pig, item as BombItem))
+      }
       return pig
     })
+  }
+
+  private spawnBombSupply(spawns: readonly SpawnTile[]): Phaser.Physics.Arcade.Group {
+    const group = this.physics.add.group({ allowGravity: false, immovable: true })
+    spawns.forEach((spawn) => {
+      const x = spawn.col * TILE_SIZE
+      const y = this.groundedFor(spawn.row * TILE_SIZE, {
+        width: BOMB_BODY.WIDTH,
+        height: BOMB_BODY.HEIGHT,
+        offsetX: BOMB_BODY.OFFSET_X,
+        offsetY: BOMB_BODY.OFFSET_Y,
+        frameHeight: BOMB_SPRITE.FRAME_HEIGHT,
+      })
+      group.add(new BombItem(this, x, y))
+    })
+    return group
+  }
+
+  // an unarmed thrower walked onto a loose bomb: consume it and let the pig re-arm
+  private tryArm(pig: Pig, item: BombItem): void {
+    if (!pig.wantsAmmo || !item.active) {
+      return
+    }
+    item.consume()
+    pig.pickUp()
+  }
+
+  private throwBomb(event: ThrowBombEvent): void {
+    const direction = Math.sign(event.targetX - event.x) || 1
+    const bomb = new Bomb(this, event.x, event.y, direction)
+    this.physics.add.collider(bomb, this.solidLayer)
   }
 
   private tryStomp(pig: Pig): void {
@@ -124,8 +172,8 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private groundedYForEnemy(floorY: number): number {
-    return floorY - (PIG_BODY.OFFSET_Y + PIG_BODY.HEIGHT - PIG_SPRITE.FRAME_HEIGHT / 2)
+  private groundedFor(floorY: number, body: PigBody): number {
+    return floorY - (body.offsetY + body.height - body.frameHeight / 2)
   }
 
   private spawnPickups(spawns: readonly PickupSpawn[]): void {

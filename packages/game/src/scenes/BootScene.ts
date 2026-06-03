@@ -1,7 +1,15 @@
 import Phaser from 'phaser'
 
 import { registerAnimations } from '@/animations/registerAnimations'
-import { DOOR_SPRITE, HEART_SPRITE, KING_SPRITE, NUMBER_SPRITE, PIG_SPRITE } from '@/constants/GameConstants'
+import {
+  BOMB_SPRITE,
+  DOOR_SPRITE,
+  HEART_SPRITE,
+  KING_SPRITE,
+  NUMBER_SPRITE,
+  PIG_BOMB_SPRITE,
+  PIG_SPRITE,
+} from '@/constants/GameConstants'
 import { SCENE_KEY, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 
 import kingIdleUrl from '@/assets/king/idle.png'
@@ -18,6 +26,13 @@ import pigRunUrl from '@/assets/pig/run.png'
 import pigAttackUrl from '@/assets/pig/attack.png'
 import pigHitUrl from '@/assets/pig/hit.png'
 import pigDeadUrl from '@/assets/pig/dead.png'
+import pigBombIdleUrl from '@/assets/pig-bomb/idle.png'
+import pigBombRunUrl from '@/assets/pig-bomb/run.png'
+import pigBombThrowUrl from '@/assets/pig-bomb/throw.png'
+import pigBombPickUrl from '@/assets/pig-bomb/pick.png'
+import bombOffUrl from '@/assets/bomb/off.png'
+import bombOnUrl from '@/assets/bomb/on.png'
+import bombBoomUrl from '@/assets/bomb/boom.png'
 import doorIdleUrl from '@/assets/door/idle.png'
 import doorOpeningUrl from '@/assets/door/opening.png'
 import doorClosingUrl from '@/assets/door/closing.png'
@@ -64,6 +79,17 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet(TEXTURE_KEY.PIG_ATTACK, pigAttackUrl, pig)
     this.load.spritesheet(TEXTURE_KEY.PIG_HIT, pigHitUrl, pig)
     this.load.spritesheet(TEXTURE_KEY.PIG_DEAD, pigDeadUrl, pig)
+
+    const pigBomb = { frameWidth: PIG_BOMB_SPRITE.FRAME_WIDTH, frameHeight: PIG_BOMB_SPRITE.FRAME_HEIGHT }
+    this.load.spritesheet(TEXTURE_KEY.PIG_BOMB_IDLE, pigBombIdleUrl, pigBomb)
+    this.load.spritesheet(TEXTURE_KEY.PIG_BOMB_RUN, pigBombRunUrl, pigBomb)
+    this.load.spritesheet(TEXTURE_KEY.PIG_BOMB_THROW, pigBombThrowUrl, pigBomb)
+    this.load.spritesheet(TEXTURE_KEY.PIG_BOMB_PICK, pigBombPickUrl, pigBomb)
+
+    const bomb = { frameWidth: BOMB_SPRITE.FRAME_WIDTH, frameHeight: BOMB_SPRITE.FRAME_HEIGHT }
+    this.load.image(TEXTURE_KEY.BOMB_OFF, bombOffUrl)
+    this.load.spritesheet(TEXTURE_KEY.BOMB_ON, bombOnUrl, bomb)
+    this.load.spritesheet(TEXTURE_KEY.BOMB_BOOM, bombBoomUrl, bomb)
 
     const door = { frameWidth: DOOR_SPRITE.FRAME_WIDTH, frameHeight: DOOR_SPRITE.FRAME_HEIGHT }
     this.load.spritesheet(TEXTURE_KEY.DOOR_IDLE, doorIdleUrl, door)
