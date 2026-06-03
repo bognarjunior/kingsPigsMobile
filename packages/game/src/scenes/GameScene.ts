@@ -11,14 +11,7 @@ import { Pickup } from '@/entities/Pickup'
 import { Pig } from '@/entities/Pig'
 import { PIG_CONFIGS } from '@/entities/pigConfigs'
 import { Player } from '@/entities/Player'
-import {
-  LEVEL_BOMB_SUPPLY,
-  LEVEL_DEFINITIONS,
-  LEVEL_ENEMIES,
-  LEVEL_PICKUPS,
-  nextLevelKey,
-  previousLevelKey,
-} from '@/levels'
+import { LEVEL_DEFINITIONS, levelContent, nextLevelKey, previousLevelKey } from '@/levels'
 import { CameraSystem } from '@/systems/CameraSystem'
 import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
@@ -80,12 +73,13 @@ export class GameScene extends Phaser.Scene {
     this.player.setDepth(PLAYER_DEPTH)
     this.physics.add.collider(this.player, solidLayer)
 
-    const bombSupply = this.spawnBombSupply(LEVEL_BOMB_SUPPLY[this.levelKey] ?? [])
-    this.enemies = this.spawnEnemies(LEVEL_ENEMIES[this.levelKey] ?? [], solidLayer, bombSupply)
+    const content = levelContent(this.levelKey)
+    const bombSupply = this.spawnBombSupply(content.bombSupply)
+    this.enemies = this.spawnEnemies(content.enemies, solidLayer, bombSupply)
     new CombatSystem(this, this.player, this.enemies)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, this.player.currentDiamonds)
-    this.spawnPickups(LEVEL_PICKUPS[this.levelKey] ?? [])
+    this.spawnPickups(content.pickups)
     this.events.once(ENTITY_EVENT.PLAYER_DIED, () => this.scene.restart({ levelKey: this.levelKey }))
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
 

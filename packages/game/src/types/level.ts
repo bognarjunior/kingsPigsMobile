@@ -1,3 +1,5 @@
+import type { EnemySpawn } from '@/types/enemy'
+
 export type LevelPhase = 'intro' | 'play' | 'outro'
 
 export interface LevelInit {
@@ -54,6 +56,14 @@ export interface LevelSpawns {
   readonly player: SpawnTile
   readonly entryDoor: SpawnTile
   readonly exitDoor: SpawnTile
+}
+
+// everything that populates a level (entities/items), kept apart from the room
+// geometry in LevelDefinition. One per level, whatever the map's source.
+export interface LevelContent {
+  readonly enemies: readonly EnemySpawn[]
+  readonly pickups: readonly PickupSpawn[]
+  readonly bombSupply: readonly SpawnTile[]
 }
 
 export interface LevelDefinition {
