@@ -114,11 +114,13 @@ Make it a real game loop: fight, collect, lose, retry.
 - [x] Basic Pig AI: front vision cone, chase, melee, knockback, stomp/stun, patrol pauses
 - [x] `HUD`: health bar (scalable sliced ribbon, 3→10 hearts) — diamond counter 🚧
 - [x] Heart pickup: heals + raises the max every 10 hearts; `LEVEL_PICKUPS` registry
-- [ ] Diamond pickup + score counter on the HUD 🚧 (in progress)
-- [ ] Heart/diamond idle animations (pulse/spin) 🚧 (in progress)
+- [x] Diamond pickup + score counter on the HUD
+- [x] Heart/diamond idle animations (pulse/spin)
+- [x] Bomb pig: seek-and-arm ammo loop (hunts a loose bomb, picks it up, throws an
+      arcing fused bomb, then re-arms); `Bomb` projectile + `BombItem` + `LEVEL_BOMB_SUPPLY`
 - [ ] Checkpoint + respawn
 - [ ] Game over screen and restart flow (today King death just restarts the level)
-- [ ] Extra pig types (bomb / box / cannon-match) and the King Pig boss
+- [ ] Remaining pig types (box / cannon-match) and the King Pig boss
 
 **Acceptance:** attacking kills the Pig and the Pig can hurt the King; collecting items
 updates the HUD; dying shows game over and restart works. Verified on the iOS Simulator.
