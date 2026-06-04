@@ -43,7 +43,7 @@ export class CombatSystem {
 
   private onEnemyAttack(event: AttackEvent): void {
     if (this.inReach(event, this.player.x, this.player.y, PIG.ATTACK_RANGE)) {
-      this.player.takeDamage(PIG.HEART_DAMAGE)
+      this.player.takeDamage(event.damage ?? PIG.HEART_DAMAGE)
     }
   }
 

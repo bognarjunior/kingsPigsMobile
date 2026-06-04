@@ -14,6 +14,21 @@ export interface EnemySpawn {
   readonly col: number
   readonly row: number
   readonly patrol: number
+  // difficulty tier (0 = green base). Drives colour + health/speed/damage.
+  readonly tier?: number
+}
+
+export type Rgb = readonly [number, number, number]
+
+// a difficulty tier: the recoloured skin ramp plus the stats it scales
+export interface PigTier {
+  // animation/texture suffix ('' = green base, otherwise 'white' | 'blue' | ...)
+  readonly name: string
+  // target skin ramp (highlight -> deep shadow); null leaves the green untouched
+  readonly skin: readonly Rgb[] | null
+  readonly health: number
+  readonly speedScale: number
+  readonly heartDamage: number
 }
 
 // pluggable attack: the pig plays `anim` and, at the strike moment, calls fire()
@@ -25,14 +40,22 @@ export interface AttackBehavior {
   readonly releaseFrame: number
   ready(now: number): boolean
   trigger(now: number): void
-  // payload carries what the thrower holds (e.g. a crate's loot); melee/bomb ignore it
-  fire(scene: Phaser.Scene, x: number, y: number, targetX: number, targetY: number, payload?: Loot): void
+  // context carries the thrower's loot and the pig's hit damage; each behaviour
+  // reads only what it needs (melee uses damage, the box thrower uses loot)
+  fire(scene: Phaser.Scene, x: number, y: number, targetX: number, targetY: number, ctx?: FireContext): void
 }
 
 export interface AttackEvent {
   readonly x: number
   readonly y: number
   readonly facingLeft: boolean
+  readonly damage?: number
+}
+
+// extra context handed to fire(): a thrower's crate loot and the pig's hit damage
+export interface FireContext {
+  readonly loot?: Loot
+  readonly damage?: number
 }
 
 export interface ThrowBombEvent {

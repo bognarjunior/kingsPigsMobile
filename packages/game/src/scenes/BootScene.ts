@@ -1,6 +1,9 @@
 import Phaser from 'phaser'
 
 import { registerAnimations } from '@/animations/registerAnimations'
+import { PIG_SHEETS } from '@/animations/pigSheets'
+import { PIG_TIERS } from '@/constants/GameConstants'
+import { recolorSpriteSheet } from '@/systems/recolorTexture'
 import {
   BOMB_SPRITE,
   BOX_PIECE_SPRITE,
@@ -140,7 +143,20 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.buildTierTextures()
     registerAnimations(this)
     this.scene.start(SCENE_KEY.MENU)
+  }
+
+  // palette-swap each pig sheet into its coloured tiers before animations register
+  private buildTierTextures(): void {
+    PIG_TIERS.forEach((tier) => {
+      if (!tier.skin) {
+        return // green is the source art
+      }
+      PIG_SHEETS.forEach((sheet) => {
+        recolorSpriteSheet(this, sheet.texture, `${sheet.texture}-${tier.name}`, sheet.width, sheet.height, tier.skin!)
+      })
+    })
   }
 }

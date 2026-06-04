@@ -3,7 +3,7 @@ import Phaser from 'phaser'
 import { BOX } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
 import { ANIM_KEY } from '@/constants/keys'
-import type { AttackBehavior } from '@/types/enemy'
+import type { AttackBehavior, FireContext } from '@/types/enemy'
 import type { Loot } from '@/types/level'
 
 const EMPTY_LOOT: Loot = { kind: 'empty' }
@@ -28,7 +28,7 @@ export class ThrowBoxBehavior implements AttackBehavior {
     this.lastAttackAt = now
   }
 
-  fire(scene: Phaser.Scene, x: number, y: number, targetX: number, _targetY: number, payload?: Loot): void {
-    scene.events.emit(ENTITY_EVENT.ENEMY_THROW_BOX, { x, y, targetX, loot: payload ?? EMPTY_LOOT })
+  fire(scene: Phaser.Scene, x: number, y: number, targetX: number, _targetY: number, ctx?: FireContext): void {
+    scene.events.emit(ENTITY_EVENT.ENEMY_THROW_BOX, { x, y, targetX, loot: ctx?.loot ?? EMPTY_LOOT })
   }
 }

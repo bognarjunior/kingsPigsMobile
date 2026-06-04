@@ -1,3 +1,5 @@
+import type { PigTier, Rgb } from '@/types/enemy'
+
 export const DISPLAY = {
   WIDTH: 480,
   HEIGHT: 270,
@@ -239,7 +241,7 @@ export const PIG = {
   KNOCKBACK_SPEED: 160,
   KNOCKBACK_DRAG: 800,
   VISION_HEIGHT: 48,
-  STOMP_DAMAGE: 25,
+  STOMP_DAMAGE: 50,
   STUN_MS: 1000,
   DEAD_LINGER_MS: 600,
   PATROL_WALK_MIN_MS: 1500,
@@ -250,6 +252,68 @@ export const PIG = {
   SPAWN_X: 360,
   SPAWN_Y: 180,
 } as const
+
+// the pig's skin ramp in the source art (highlight -> deep shadow); only these
+// four colours are swapped per tier, leaving eyes/teeth/outline untouched.
+export const PIG_SKIN: readonly Rgb[] = [
+  [145, 234, 156],
+  [72, 195, 138],
+  [55, 171, 156],
+  [41, 138, 145],
+]
+
+// difficulty tiers: colour ramp + scaled stats. Index 0 (green) is the base art.
+export const PIG_TIERS: readonly PigTier[] = [
+  { name: '', skin: null, health: 50, speedScale: 1.0, heartDamage: 1 },
+  {
+    name: 'white',
+    skin: [
+      [228, 226, 222],
+      [209, 205, 199],
+      [202, 198, 190],
+      [195, 191, 182],
+    ],
+    health: 75,
+    speedScale: 1.1,
+    heartDamage: 1,
+  },
+  {
+    name: 'blue',
+    skin: [
+      [147, 187, 232],
+      [75, 130, 192],
+      [58, 109, 168],
+      [44, 90, 142],
+    ],
+    health: 100,
+    speedScale: 1.2,
+    heartDamage: 1,
+  },
+  {
+    name: 'red',
+    skin: [
+      [236, 146, 143],
+      [198, 73, 69],
+      [174, 56, 52],
+      [148, 42, 38],
+    ],
+    health: 125,
+    speedScale: 1.3,
+    heartDamage: 2,
+  },
+  {
+    name: 'gray',
+    skin: [
+      [152, 156, 164],
+      [120, 125, 135],
+      [101, 105, 114],
+      [81, 85, 92],
+    ],
+    health: 150,
+    speedScale: 1.4,
+    heartDamage: 2,
+  },
+]
 
 export const COMBAT = {
   VERTICAL_REACH: 40,

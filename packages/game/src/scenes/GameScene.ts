@@ -11,6 +11,7 @@ import {
   DOOR,
   KING_BODY,
   KING_SPRITE,
+  PIG_TIERS,
   PLAYER,
 } from '@/constants/GameConstants'
 import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
@@ -183,9 +184,10 @@ export class GameScene extends Phaser.Scene {
     const ammoGroups: Record<AmmoKind, Phaser.Physics.Arcade.Group> = { bomb: bombSupply, box: boxSupply }
     return spawns.map((spawn) => {
       const config = PIG_CONFIGS[spawn.type]
+      const tier = PIG_TIERS[spawn.tier ?? 0] ?? PIG_TIERS[0]
       const x = spawn.col * TILE_SIZE
       const y = this.groundedFor(spawn.row * TILE_SIZE, config.body)
-      const pig = new Pig(this, x, y, spawn.patrol * TILE_SIZE, config)
+      const pig = new Pig(this, x, y, spawn.patrol * TILE_SIZE, config, tier)
       this.physics.add.collider(pig, solidLayer)
       this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
       config.ammo?.forEach((option) => {

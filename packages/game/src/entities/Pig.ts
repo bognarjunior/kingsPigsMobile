@@ -4,7 +4,7 @@ import { PatrolBehavior } from '@/behaviors/PatrolBehavior'
 import { StateMachine } from '@/behaviors/StateMachine'
 import { BOMB, PIG } from '@/constants/GameConstants'
 import { Enemy } from '@/entities/Enemy'
-import type { AmmoKind, ArmedSet, AttackBehavior, EnemyState, PigAnims, PigBody, PigConfig } from '@/types/enemy'
+import type { AmmoKind, ArmedSet, AttackBehavior, EnemyState, PigAnims, PigBody, PigConfig, PigTier } from '@/types/enemy'
 import type { Loot } from '@/types/level'
 
 const completeEvent = (animKey: string): string =>
@@ -26,11 +26,16 @@ export class Pig extends Enemy {
   private readonly seeksAmmo: boolean
   private readonly slots = new Map<AmmoKind, AmmoSlot>()
   private readonly ammoSources: Phaser.Physics.Arcade.Group[] = []
-  private attack?: AttackBehavior
+  private readonly meleeAttack?: AttackBehavior
+  private activeAmmoAttack?: AttackBehavior
+  private firingAttack?: AttackBehavior
   private activeArmed?: ArmedSet
   private armed: boolean
   private carriedLoot: Loot = { kind: 'empty' }
-  private health: number = PIG.MAX_HEALTH
+  private readonly colorSuffix: string
+  private readonly speedScale: number
+  private readonly contactDamage: number
+  private health: number
   private isAttacking = false
   private isPicking = false
   private isHurt = false
@@ -39,30 +44,32 @@ export class Pig extends Enemy {
   private patrolResting = true
   private patrolPhaseUntil = 0
 
-  constructor(scene: Phaser.Scene, x: number, y: number, patrolRange: number, config: PigConfig) {
+  constructor(scene: Phaser.Scene, x: number, y: number, patrolRange: number, config: PigConfig, tier: PigTier) {
     super(scene, x, y, config.textures.idle)
 
     this.animKeys = config.anims
     this.baseBody = config.body
     this.seeksAmmo = !!config.ammo && config.ammo.length > 0
+    this.colorSuffix = tier.name ? `-${tier.name}` : ''
+    this.speedScale = tier.speedScale
+    this.contactDamage = tier.heartDamage
+    this.health = tier.health
 
     config.ammo?.forEach((option) => {
       this.slots.set(option.kind, { armed: option.armed, attack: option.createAttack() })
     })
-    if (config.createAttack) {
-      this.attack = config.createAttack()
-    }
+    this.meleeAttack = config.createAttack?.()
     this.armed = !this.seeksAmmo
 
     const body = this.body as Phaser.Physics.Arcade.Body
     body.setDragX(PIG.KNOCKBACK_DRAG)
     this.applyBody(this.baseBody)
 
-    this.patrol = new PatrolBehavior(x - patrolRange, x + patrolRange, PIG.PATROL_SPEED)
+    this.patrol = new PatrolBehavior(x - patrolRange, x + patrolRange, PIG.PATROL_SPEED * this.speedScale)
 
     this.stateMachine
-      .addState('idle', { onEnter: () => this.play(this.idleAnim(), true) })
-      .addState('run', { onEnter: () => this.play(this.runAnim(), true) })
+      .addState('idle', { onEnter: () => this.play(this.tierAnim(this.idleAnim()), true) })
+      .addState('run', { onEnter: () => this.play(this.tierAnim(this.runAnim()), true) })
       .addState('attack', {})
       .addState('hurt', {})
       .addState('dead', {})
@@ -100,8 +107,8 @@ export class Pig extends Enemy {
     this.setFlipX(knockbackDir < 0)
     this.setTint(HURT_TINT)
     this.stateMachine.setState('hurt')
-    this.play(this.animKeys.hit, true)
-    this.once(completeEvent(this.animKeys.hit), () => {
+    this.play(this.tierAnim(this.animKeys.hit), true)
+    this.once(completeEvent(this.tierAnim(this.animKeys.hit)), () => {
       this.isHurt = false
       this.clearTint()
     })
@@ -125,7 +132,7 @@ export class Pig extends Enemy {
     this.setVelocity(0, 0)
     this.setTint(STUN_TINT)
     this.stateMachine.setState('hurt')
-    this.play(this.animKeys.hit, true)
+    this.play(this.tierAnim(this.animKeys.hit), true)
     this.scene.time.delayedCall(PIG.STUN_MS, () => {
       this.isStunned = false
       this.clearTint()
@@ -141,14 +148,14 @@ export class Pig extends Enemy {
       return
     }
 
-    this.attack = slot.attack
+    this.activeAmmoAttack = slot.attack
     this.activeArmed = slot.armed
     this.carriedLoot = loot
     this.isPicking = true
     this.setVelocityX(0)
     this.applyBody(slot.armed.body)
-    this.play(slot.armed.pickAnim, true)
-    this.once(completeEvent(slot.armed.pickAnim), () => {
+    this.play(this.tierAnim(slot.armed.pickAnim), true)
+    this.once(completeEvent(this.tierAnim(slot.armed.pickAnim)), () => {
       this.isPicking = false
       this.armed = true
       this.forceIdle()
@@ -164,12 +171,7 @@ export class Pig extends Enemy {
       return // let the knockback slide; body drag decelerates it
     }
 
-    if (this.seeksAmmo && !this.armed) {
-      this.seekAmmo()
-      return
-    }
-
-    const attack = this.attack
+    const attack = this.currentAttack()
     if (!attack) {
       this.patrolStep()
       return
@@ -178,9 +180,17 @@ export class Pig extends Enemy {
     const onGround = (this.body as Phaser.Physics.Arcade.Body).blocked.down
     const canSee = this.canSeePlayer(playerX, playerY)
     const distance = Phaser.Math.Distance.Between(this.x, this.y, playerX, playerY)
-
     const sameLevel = Math.abs(playerY - this.y) <= PIG.ATTACK_VERTICAL
-    if (canSee && sameLevel && distance <= attack.range) {
+    const inRange = canSee && sameLevel && distance <= attack.range
+
+    // empty thrower restocks when it can reach ammo and the King isn't point-blank;
+    // otherwise it falls through and fights with its fists (melee attack)
+    if (this.seeksAmmo && !this.armed && !inRange && this.nearestAmmoX() !== null) {
+      this.seekAmmo()
+      return
+    }
+
+    if (inRange) {
       this.setVelocityX(0)
       this.setFlipX(playerX > this.x)
       if (onGround && attack.ready(this.scene.time.now)) {
@@ -192,13 +202,18 @@ export class Pig extends Enemy {
     }
 
     if (canSee) {
-      const velocityX = Math.sign(playerX - this.x) * PIG.CHASE_SPEED
+      const velocityX = Math.sign(playerX - this.x) * PIG.CHASE_SPEED * this.speedScale
       this.setVelocityX(velocityX)
       this.handleMoveAnimation(velocityX)
       return
     }
 
     this.patrolStep()
+  }
+
+  // ammo throw while carrying, otherwise the fallback melee (fists)
+  private currentAttack(): AttackBehavior | undefined {
+    return this.armed && this.activeAmmoAttack ? this.activeAmmoAttack : this.meleeAttack
   }
 
   // walk toward the closest loose ammo of any kind; the scene's overlap arms the pig
@@ -287,13 +302,15 @@ export class Pig extends Enemy {
 
   private enterAttack(attack: AttackBehavior, playerX: number, playerY: number): void {
     this.isAttacking = true
+    this.firingAttack = attack
     attack.trigger(this.scene.time.now)
     this.setVelocityX(0)
     this.stateMachine.setState('attack')
-    this.play(attack.anim, true)
+    this.play(this.tierAnim(attack.anim), true)
     this.scheduleFire(attack, playerX, playerY)
-    this.once(completeEvent(attack.anim), () => {
+    this.once(completeEvent(this.tierAnim(attack.anim)), () => {
       this.isAttacking = false
+      this.firingAttack = undefined
       this.off(Phaser.Animations.Events.ANIMATION_UPDATE)
       if (this.seeksAmmo) {
         this.applyBody(this.baseBody)
@@ -306,7 +323,10 @@ export class Pig extends Enemy {
   // so the held bomb/crate disappears in sync with the thing appearing in the air
   private scheduleFire(attack: AttackBehavior, playerX: number, playerY: number): void {
     const fire = (): void => {
-      attack.fire(this.scene, this.x, this.y, playerX, playerY, this.carriedLoot)
+      attack.fire(this.scene, this.x, this.y, playerX, playerY, {
+        loot: this.carriedLoot,
+        damage: this.contactDamage,
+      })
       if (this.seeksAmmo) {
         this.armed = false
       }
@@ -328,9 +348,10 @@ export class Pig extends Enemy {
 
   private cancelAttack(): void {
     this.isAttacking = false
-    if (this.attack) {
-      this.off(completeEvent(this.attack.anim))
+    if (this.firingAttack) {
+      this.off(completeEvent(this.tierAnim(this.firingAttack.anim)))
     }
+    this.firingAttack = undefined
     this.off(Phaser.Animations.Events.ANIMATION_UPDATE)
     if (this.seeksAmmo && this.armed) {
       this.armed = false
@@ -345,7 +366,7 @@ export class Pig extends Enemy {
     body.stop()
     body.enable = false
     this.stateMachine.setState('dead')
-    this.play(this.animKeys.dead, true)
+    this.play(this.tierAnim(this.animKeys.dead), true)
     this.scene.time.delayedCall(PIG.DEAD_LINGER_MS, () => this.destroy())
   }
 
@@ -363,9 +384,14 @@ export class Pig extends Enemy {
     return this.armed && this.activeArmed ? this.activeArmed.runAnim : this.animKeys.run
   }
 
+  // route a base animation key to this pig's tier colour (green = no suffix)
+  private tierAnim(base: string): string {
+    return base + this.colorSuffix
+  }
+
   // re-enter idle and play its animation even if already idling (armed look changed)
   private forceIdle(): void {
     this.stateMachine.setState('idle')
-    this.play(this.idleAnim(), true)
+    this.play(this.tierAnim(this.idleAnim()), true)
   }
 }

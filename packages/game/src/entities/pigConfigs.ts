@@ -48,6 +48,8 @@ export const PIG_CONFIGS: Readonly<Record<PigType, PigConfig>> = {
   },
   thrower: {
     ...BASE,
+    // fists when empty-handed: a thrower still fights once its ammo runs out
+    createAttack: () => new MeleeAttackBehavior(PIG.ATTACK_RANGE, PIG.ATTACK_COOLDOWN_MS),
     ammo: [
       {
         kind: 'bomb',
