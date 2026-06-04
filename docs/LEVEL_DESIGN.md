@@ -39,7 +39,11 @@ only about *what lives inside* the room.
 
 ## 2. Enemies — fixed + triggered
 
-- **Fixed**: `{ type, col, row, patrol }` — exactly like today, just moved into `LevelContent.enemies`.
+- **Fixed**: `{ type, col, row, patrol, tier }` — moved into `LevelContent.enemies`.
+- **Two types only**: `pig` (melee) and `thrower`. A thrower is generic: empty-handed it hunts the
+  nearest loose ammo of **any** kind (bomb or crate), grabs it, switches to that ammo's carrying
+  sprite, throws it, then re-arms. With no ammo (or when cornered) it falls back to **fists** — so
+  a thrower is never harmless. Specialising one (bomb-only, box-only) is just a shorter ammo list.
 - **Triggered wave**: a rectangular zone in the level. When the King enters it the first time,
   it spawns its list of pigs once, then disarms.
   ```ts
@@ -47,6 +51,29 @@ only about *what lives inside* the room.
   ```
 - 🔸 **OPEN** — what fires a wave: only zone-on-enter, or also "all pigs in the room dead → door
   unlocks / next wave"? (Suggested default: **zone-on-enter, fire once**. Boss arena handled later.)
+
+---
+
+## 2b. Pig tiers — difficulty by colour
+
+The pig is green in the source art; tiers recolour **only the four skin shades** (eyes/teeth/outline
+stay) via a palette swap done **at load time** — one green source in, every colour out, no extra PNGs
+shipped (`systems/recolorTexture.ts`, driven by `PIG_TIERS`). Each tier scales health, speed and the
+pig's **contact (fist/melee) damage**; thrown bombs/crates keep their own flat damage.
+
+| Tier | Colour | Health (hammer = 25/hit) | Speed | Hit damage |
+|------|--------|--------------------------|-------|------------|
+| 0 | 🟢 Green | 50 (2 hits) | ×1.0 | 1 heart |
+| 1 | ⚪ White | 75 (3) | ×1.1 | 1 |
+| 2 | 🔵 Blue | 100 (4) | ×1.2 | 1 |
+| 3 | 🔴 Red | 125 (5) | ×1.3 | 2 |
+| 4 | ⚫ Gray | 150 (6) | ×1.4 | 2 |
+
+> (Gray replaces a true black, which collided with the purple background.) Numbers live in
+> `PIG_TIERS` and are easy to rebalance. A spawn's `tier` defaults to 0.
+
+**Stomp = double damage.** Jumping on a pig's head deals `PIG.STOMP_DAMAGE` = 50 (double a 25 hammer
+hit), so a head-stomp is the efficient kill: green dies in 1 stomp, gray in 3 (vs 6 hammer hits).
 
 ---
 
@@ -85,8 +112,12 @@ King walks into it to collect).
   (and later across sessions via the Bridge → AsyncStorage, in Phase 6).
 - They are spent in a **shop** — but the **shop is deferred**. For now diamonds only accumulate
   and show on the HUD; the spending screen comes later.
-- 🔸 **OPEN (later) — shop catalog & frequency**: what's for sale (raise max heart, full heal, …),
-  prices, and whether it opens every level or only at hubs. Revisit when we build the shop.
+- 🔸 **OPEN (later) — shop catalog & frequency**: prices and whether it opens every level or only at
+  hubs. Revisit when we build the shop. Planned King upgrades to sell:
+  - **+ max health** (raise the heart cap — the only way to grow it)
+  - **+ attack damage** (King hits harder)
+  - **invulnerability** (a temporary shield / longer i-frames)
+  - full heal / refill hearts
 
 ---
 
