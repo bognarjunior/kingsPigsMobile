@@ -16,6 +16,7 @@ export class BreakableBox extends Phaser.Physics.Arcade.Sprite {
     x: number,
     y: number,
     private readonly loot: Loot,
+    private readonly id: string,
   ) {
     super(scene, x, y, TEXTURE_KEY.BOX_IDLE, 0)
 
@@ -48,7 +49,7 @@ export class BreakableBox extends Phaser.Physics.Arcade.Sprite {
     this.broken = true
 
     BoxDebris.burst(this.scene, this.x, this.y)
-    this.scene.events.emit(ENTITY_EVENT.BOX_BROKEN, { x: this.x, y: this.y, loot: this.loot })
+    this.scene.events.emit(ENTITY_EVENT.BOX_BROKEN, { x: this.x, y: this.y, loot: this.loot, id: this.id })
     this.destroy()
   }
 }

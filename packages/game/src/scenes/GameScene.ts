@@ -27,13 +27,14 @@ import { PIG_CONFIGS } from '@/entities/pigConfigs'
 import { Player } from '@/entities/Player'
 import { ThrownBox } from '@/entities/ThrownBox'
 import { LEVEL_DEFINITIONS, levelContent, nextLevelKey, previousLevelKey } from '@/levels'
+import { runProfile } from '@/services/runProfile'
 import { CameraSystem } from '@/systems/CameraSystem'
 import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
 import type { AmmoKind, EnemySpawn, PigBody, ThrowBombEvent, ThrowBoxEvent } from '@/types/enemy'
 import type { InputState } from '@/types/input'
-import type { BoxBrokenEvent, BoxPlacement, LevelInit, LevelPhase, SpawnTile } from '@/types/level'
+import type { BoxBrokenEvent, BoxPlacement, LevelEntrance, LevelInit, LevelPhase, SpawnTile } from '@/types/level'
 import { DiamondCounter } from '@/ui/DiamondCounter'
 import { HealthBar } from '@/ui/HealthBar'
 import { VirtualControls } from '@/ui/VirtualControls'
@@ -52,6 +53,8 @@ export class GameScene extends Phaser.Scene {
   private virtualControls!: VirtualControls
   private phase: LevelPhase = 'intro'
   private levelKey: string = TILEMAP_KEY.LEVEL1
+  private entrance: LevelEntrance = 'entry'
+  private introDoor!: Door
   private prevAttack = false
 
   constructor() {
@@ -60,6 +63,7 @@ export class GameScene extends Phaser.Scene {
 
   init(data: Partial<LevelInit>): void {
     this.levelKey = data.levelKey ?? TILEMAP_KEY.LEVEL1
+    this.entrance = data.entrance ?? 'entry'
   }
 
   create(): void {
@@ -84,7 +88,10 @@ export class GameScene extends Phaser.Scene {
     this.entryDoor.setDepth(DOOR_DEPTH)
     this.exitDoor.setDepth(DOOR_DEPTH)
 
-    this.player = new Player(this, playerSpawn.x, this.groundedY(playerSpawn.y))
+    // arrive at the exit door when coming back from the next level, else the entry
+    this.introDoor = this.entrance === 'exit' ? this.exitDoor : this.entryDoor
+    const arriveAt = this.entrance === 'exit' ? exitDoorPoint : playerSpawn
+    this.player = new Player(this, arriveAt.x, this.groundedY(arriveAt.y))
     this.player.setDepth(PLAYER_DEPTH)
     this.physics.add.collider(this.player, solidLayer)
 
@@ -96,7 +103,7 @@ export class GameScene extends Phaser.Scene {
     this.enemies = this.spawnEnemies(content.enemies, solidLayer, bombSupply, boxSupply)
     new CombatSystem(this, this.player, this.enemies, boxes)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
-    new DiamondCounter(this, this.player.currentDiamonds)
+    new DiamondCounter(this, runProfile.diamonds)
     this.events.once(ENTITY_EVENT.PLAYER_DIED, () => this.scene.restart({ levelKey: this.levelKey }))
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOX, this.throwBox, this)
@@ -279,12 +286,19 @@ export class GameScene extends Phaser.Scene {
     return placements.map((placement) => {
       const x = placement.col * TILE_SIZE
       const y = this.groundedFor(placement.row * TILE_SIZE, floorBody)
-      return new BreakableBox(this, x, y, placement.loot)
+      const id = `${placement.col},${placement.row}`
+      // anti-farm: a crate looted on a previous visit comes back empty
+      const loot = runProfile.isLootTaken(this.levelKey, id) ? { kind: 'empty' as const } : placement.loot
+      return new BreakableBox(this, x, y, loot, id)
     })
   }
 
-  // a smashed crate announced its loot: drop a collectible where it broke
+  // a smashed crate announced its loot: bank it (so re-entry can't re-loot) and
+  // drop the collectible where it broke. Thrown crates carry no id, so they aren't banked.
   private dropLoot(event: BoxBrokenEvent): void {
+    if (event.id) {
+      runProfile.markLootTaken(this.levelKey, event.id)
+    }
     if (event.loot.kind === 'heart') {
       const heart = new Pickup(this, event.x, event.y, TEXTURE_KEY.BIG_HEART, ANIM_KEY.BIG_HEART_IDLE)
       this.physics.add.overlap(this.player, heart, () => this.collectPickup(heart, () => this.player.collectHeart()))
@@ -307,12 +321,12 @@ export class GameScene extends Phaser.Scene {
     this.player.setVisible(false)
     this.player.beginCutscene()
 
-    this.entryDoor.open(() => {
+    this.introDoor.open(() => {
       this.player.setVisible(true)
       this.player.enterFromDoor(() => {
-        this.entryDoor.close(() => this.dismissEntryDoorIfFirstLevel())
+        this.introDoor.close(() => this.dismissEntryDoorIfFirstLevel())
         this.phase = 'play'
-      })
+      }, this.entrance === 'exit')
     })
   }
 
@@ -335,6 +349,10 @@ export class GameScene extends Phaser.Scene {
       return // no level behind the entry door (shouldn't happen: it vanished on level 1)
     }
 
+    // continuous world: leaving forward lands on the next level's entry door, going
+    // back lands on the previous level's exit door (where the King originally left it)
+    const destinationEntrance: LevelEntrance = which === 'exit' ? 'entry' : 'exit'
+
     this.phase = 'outro'
     this.player.beginCutscene()
     this.player.setPosition(door.x, this.player.y)
@@ -344,7 +362,7 @@ export class GameScene extends Phaser.Scene {
           if (which === 'exit') {
             sendToApp(GAME_EVENT.LEVEL_COMPLETE)
           }
-          this.scene.restart({ levelKey: destination })
+          this.scene.restart({ levelKey: destination, entrance: destinationEntrance })
         })
       })
     })

@@ -2,8 +2,13 @@ import type { EnemySpawn } from '@/types/enemy'
 
 export type LevelPhase = 'intro' | 'play' | 'outro'
 
+// which door the King steps out of on arrival: 'entry' when coming forward (or at
+// game start), 'exit' when coming back from the next level (continuous world).
+export type LevelEntrance = 'entry' | 'exit'
+
 export interface LevelInit {
   readonly levelKey: string
+  readonly entrance?: LevelEntrance
 }
 
 // inclusive interior rectangle (in tile coordinates)
@@ -68,6 +73,8 @@ export interface BoxBrokenEvent {
   readonly x: number
   readonly y: number
   readonly loot: Loot
+  // set when a scenery crate (not a thrown one) breaks, so its loot is banked once
+  readonly id?: string
 }
 
 export interface LevelSpawns {

@@ -4,6 +4,7 @@ import { StateMachine } from '@/behaviors/StateMachine'
 import { KING_BODY, PLAYER } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
 import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
+import { runProfile } from '@/services/runProfile'
 import type { InputState } from '@/types/input'
 import type { PlayerState } from '@/types/player'
 
@@ -21,7 +22,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private hearts: number = PLAYER.MAX_HEARTS
   private maxHeartsCount: number = PLAYER.MAX_HEARTS
   private heartsCollected = 0
-  private diamonds = 0
   private invulnerableUntil = 0
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -65,13 +65,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.maxHeartsCount
   }
 
-  get currentDiamonds(): number {
-    return this.diamonds
-  }
-
   collectDiamond(amount = 1): void {
-    this.diamonds += amount
-    this.scene.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, this.diamonds)
+    runProfile.addDiamonds(amount)
+    this.scene.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, runProfile.diamonds)
   }
 
   // collecting a heart heals one (up to the current max) and counts toward a
@@ -93,9 +89,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setVelocity(0, 0)
   }
 
-  enterFromDoor(onComplete: () => void): void {
+  enterFromDoor(onComplete: () => void, facingLeft = false): void {
     this.inCutscene = true
     this.setVelocity(0, 0)
+    this.face(facingLeft)
     this.stateMachine.setState('doorOut')
     this.once(completeEvent(ANIM_KEY.KING_DOOR_OUT), () => {
       this.inCutscene = false
