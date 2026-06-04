@@ -3,6 +3,7 @@ import Phaser from 'phaser'
 import {
   BOMB_BODY,
   BOMB_SPRITE,
+  BOX,
   BOX_BODY,
   BOX_SPRITE,
   COLORS,
@@ -23,12 +24,13 @@ import { Pickup } from '@/entities/Pickup'
 import { Pig } from '@/entities/Pig'
 import { PIG_CONFIGS } from '@/entities/pigConfigs'
 import { Player } from '@/entities/Player'
+import { ThrownBox } from '@/entities/ThrownBox'
 import { LEVEL_DEFINITIONS, levelContent, nextLevelKey, previousLevelKey } from '@/levels'
 import { CameraSystem } from '@/systems/CameraSystem'
 import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
-import type { EnemySpawn, PigBody, ThrowBombEvent } from '@/types/enemy'
+import type { AmmoKind, EnemySpawn, PigBody, ThrowBombEvent, ThrowBoxEvent } from '@/types/enemy'
 import type { InputState } from '@/types/input'
 import type { BoxBrokenEvent, BoxPlacement, LevelInit, LevelPhase, SpawnTile } from '@/types/level'
 import { DiamondCounter } from '@/ui/DiamondCounter'
@@ -87,13 +89,16 @@ export class GameScene extends Phaser.Scene {
 
     const content = levelContent(this.levelKey)
     const bombSupply = this.spawnBombSupply(content.bombSupply)
-    this.enemies = this.spawnEnemies(content.enemies, solidLayer, bombSupply)
     const boxes = this.spawnBoxes(content.boxes)
+    const boxSupply = this.physics.add.group({ allowGravity: false, immovable: true })
+    boxes.forEach((box) => boxSupply.add(box))
+    this.enemies = this.spawnEnemies(content.enemies, solidLayer, bombSupply, boxSupply)
     new CombatSystem(this, this.player, this.enemies, boxes)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, this.player.currentDiamonds)
     this.events.once(ENTITY_EVENT.PLAYER_DIED, () => this.scene.restart({ levelKey: this.levelKey }))
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
+    this.events.on(ENTITY_EVENT.ENEMY_THROW_BOX, this.throwBox, this)
     this.events.on(ENTITY_EVENT.BOX_BROKEN, this.dropLoot, this)
 
     const { widthInPixels, heightInPixels } = map
@@ -173,7 +178,9 @@ export class GameScene extends Phaser.Scene {
     spawns: readonly EnemySpawn[],
     solidLayer: Phaser.Tilemaps.TilemapLayer,
     bombSupply: Phaser.Physics.Arcade.Group,
+    boxSupply: Phaser.Physics.Arcade.Group,
   ): Pig[] {
+    const ammoGroups: Record<AmmoKind, Phaser.Physics.Arcade.Group> = { bomb: bombSupply, box: boxSupply }
     return spawns.map((spawn) => {
       const config = PIG_CONFIGS[spawn.type]
       const x = spawn.col * TILE_SIZE
@@ -181,10 +188,11 @@ export class GameScene extends Phaser.Scene {
       const pig = new Pig(this, x, y, spawn.patrol * TILE_SIZE, config)
       this.physics.add.collider(pig, solidLayer)
       this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
-      if (config.seeksAmmo) {
-        pig.setAmmoSource(bombSupply)
-        this.physics.add.overlap(pig, bombSupply, (_, item) => this.tryArm(pig, item as BombItem))
-      }
+      config.ammo?.forEach((option) => {
+        const group = ammoGroups[option.kind]
+        pig.addAmmoSource(group)
+        this.physics.add.overlap(pig, group, (_, item) => this.tryArm(pig, item as BombItem | BreakableBox))
+      })
       return pig
     })
   }
@@ -205,19 +213,39 @@ export class GameScene extends Phaser.Scene {
     return group
   }
 
-  // an unarmed thrower walked onto a loose bomb: consume it and let the pig re-arm
-  private tryArm(pig: Pig, item: BombItem): void {
+  // an unarmed thrower reached its ammo: consume it and let the pig re-arm.
+  // a grabbed crate hands over its loot so the pig can break it open when thrown.
+  private tryArm(pig: Pig, item: BombItem | BreakableBox): void {
     if (!pig.wantsAmmo || !item.active) {
       return
     }
-    item.consume()
-    pig.pickUp()
+    if (item instanceof BreakableBox) {
+      pig.pickUp('box', item.grab())
+    } else {
+      item.consume()
+      pig.pickUp('bomb')
+    }
   }
 
   private throwBomb(event: ThrowBombEvent): void {
     const direction = Math.sign(event.targetX - event.x) || 1
     const bomb = new Bomb(this, event.x, event.y, direction)
     this.physics.add.collider(bomb, this.solidLayer)
+  }
+
+  private throwBox(event: ThrowBoxEvent): void {
+    const direction = Math.sign(event.targetX - event.x) || 1
+    const box = new ThrownBox(this, event.x, event.y, direction, event.loot)
+    this.physics.add.collider(box, this.solidLayer)
+    this.physics.add.overlap(this.player, box, () => this.hitByBox(box))
+  }
+
+  private hitByBox(box: ThrownBox): void {
+    if (!box.isLive) {
+      return
+    }
+    this.player.takeDamage(BOX.THROW_DAMAGE)
+    box.shatter()
   }
 
   private tryStomp(pig: Pig): void {

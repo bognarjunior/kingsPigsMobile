@@ -1,8 +1,13 @@
 import type Phaser from 'phaser'
 
+import type { Loot } from '@/types/level'
+
 export type EnemyState = 'idle' | 'run' | 'attack' | 'hurt' | 'dead'
 
-export type PigType = 'pig' | 'bomb'
+export type PigType = 'pig' | 'thrower'
+
+// the kinds of grounded ammo a thrower can pick up and lob
+export type AmmoKind = 'bomb' | 'box'
 
 export interface EnemySpawn {
   readonly type: PigType
@@ -16,9 +21,12 @@ export interface EnemySpawn {
 export interface AttackBehavior {
   readonly range: number
   readonly anim: string
+  // 1-based animation frame at which the strike/projectile is released
+  readonly releaseFrame: number
   ready(now: number): boolean
   trigger(now: number): void
-  fire(scene: Phaser.Scene, x: number, y: number, targetX: number, targetY: number): void
+  // payload carries what the thrower holds (e.g. a crate's loot); melee/bomb ignore it
+  fire(scene: Phaser.Scene, x: number, y: number, targetX: number, targetY: number, payload?: Loot): void
 }
 
 export interface AttackEvent {
@@ -31,6 +39,13 @@ export interface ThrowBombEvent {
   readonly x: number
   readonly y: number
   readonly targetX: number
+}
+
+export interface ThrowBoxEvent {
+  readonly x: number
+  readonly y: number
+  readonly targetX: number
+  readonly loot: Loot
 }
 
 export interface BombExplodeEvent {
@@ -69,12 +84,21 @@ export interface ArmedSet {
   readonly body: PigBody
 }
 
+// one ammo kind a thrower can use: the look it wears while carrying it plus how
+// it throws it. A thrower may list several (bomb, box, ...) and use whichever it
+// finds first on the ground.
+export interface AmmoOption {
+  readonly kind: AmmoKind
+  readonly armed: ArmedSet
+  readonly createAttack: () => AttackBehavior
+}
+
 export interface PigConfig {
   readonly textures: PigTextures
   readonly anims: PigAnims
   readonly body: PigBody
-  readonly createAttack: () => AttackBehavior
-  // throwers start unarmed, seek a bomb/box on the ground, and re-arm by picking it up
-  readonly seeksAmmo: boolean
-  readonly armed?: ArmedSet
+  // a melee pig has a fixed attack and never seeks ammo
+  readonly createAttack?: () => AttackBehavior
+  // a thrower starts empty-handed and re-arms from any of these ammo kinds
+  readonly ammo?: readonly AmmoOption[]
 }

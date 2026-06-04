@@ -9,6 +9,7 @@ import {
   KING_SPRITE,
   NUMBER_SPRITE,
   PIG_BOMB_SPRITE,
+  PIG_BOX_SPRITE,
   PIG_SPRITE,
 } from '@/constants/GameConstants'
 import { SCENE_KEY, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
@@ -31,6 +32,10 @@ import pigBombIdleUrl from '@/assets/pig-bomb/idle.png'
 import pigBombRunUrl from '@/assets/pig-bomb/run.png'
 import pigBombThrowUrl from '@/assets/pig-bomb/throw.png'
 import pigBombPickUrl from '@/assets/pig-bomb/pick.png'
+import pigBoxIdleUrl from '@/assets/pig-box/idle.png'
+import pigBoxRunUrl from '@/assets/pig-box/run.png'
+import pigBoxThrowUrl from '@/assets/pig-box/throw.png'
+import pigBoxPickUrl from '@/assets/pig-box/pick.png'
 import bombOffUrl from '@/assets/bomb/off.png'
 import bombOnUrl from '@/assets/bomb/on.png'
 import bombBoomUrl from '@/assets/bomb/boom.png'
@@ -88,6 +93,12 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet(TEXTURE_KEY.PIG_BOMB_RUN, pigBombRunUrl, pigBomb)
     this.load.spritesheet(TEXTURE_KEY.PIG_BOMB_THROW, pigBombThrowUrl, pigBomb)
     this.load.spritesheet(TEXTURE_KEY.PIG_BOMB_PICK, pigBombPickUrl, pigBomb)
+
+    const pigBox = { frameWidth: PIG_BOX_SPRITE.FRAME_WIDTH, frameHeight: PIG_BOX_SPRITE.FRAME_HEIGHT }
+    this.load.spritesheet(TEXTURE_KEY.PIG_BOX_IDLE, pigBoxIdleUrl, pigBox)
+    this.load.spritesheet(TEXTURE_KEY.PIG_BOX_RUN, pigBoxRunUrl, pigBox)
+    this.load.spritesheet(TEXTURE_KEY.PIG_BOX_THROW, pigBoxThrowUrl, pigBox)
+    this.load.spritesheet(TEXTURE_KEY.PIG_BOX_PICK, pigBoxPickUrl, pigBox)
 
     const bomb = { frameWidth: BOMB_SPRITE.FRAME_WIDTH, frameHeight: BOMB_SPRITE.FRAME_HEIGHT }
     this.load.image(TEXTURE_KEY.BOMB_OFF, bombOffUrl)

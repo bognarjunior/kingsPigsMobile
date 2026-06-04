@@ -1,11 +1,13 @@
 import Phaser from 'phaser'
 
+import { PIG } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
 import { ANIM_KEY } from '@/constants/keys'
 import type { AttackBehavior } from '@/types/enemy'
 
 export class MeleeAttackBehavior implements AttackBehavior {
   readonly anim = ANIM_KEY.PIG_ATTACK
+  readonly releaseFrame = PIG.ATTACK_RELEASE_FRAME
   private lastAttackAt = Number.NEGATIVE_INFINITY
 
   constructor(

@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 
+import { BOMB } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
 import { ANIM_KEY } from '@/constants/keys'
 import type { AttackBehavior } from '@/types/enemy'
@@ -8,6 +9,7 @@ import type { AttackBehavior } from '@/types/enemy'
 // scene to spawn a bomb arcing toward the player (the scene owns the physics).
 export class ThrowBombBehavior implements AttackBehavior {
   readonly anim = ANIM_KEY.PIG_BOMB_THROW
+  readonly releaseFrame = BOMB.RELEASE_FRAME
   private lastAttackAt = Number.NEGATIVE_INFINITY
 
   constructor(

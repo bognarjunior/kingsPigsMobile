@@ -15,6 +15,7 @@ export const ENTITY_EVENT = {
   PLAYER_ATTACK: 'player:attack',
   ENEMY_ATTACK: 'enemy:attack',
   ENEMY_THROW_BOMB: 'enemy:throw-bomb',
+  ENEMY_THROW_BOX: 'enemy:throw-box',
   BOMB_EXPLODE: 'bomb:explode',
   BOX_BROKEN: 'box:broken',
   PLAYER_HEALTH: 'player:health',

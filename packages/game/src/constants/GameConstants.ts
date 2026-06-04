@@ -126,6 +126,8 @@ export const BOMB = {
   BOOM_FPS: 14,
   // how close an unarmed thrower stands to a grounded bomb before grabbing it
   PICK_REACH: 8,
+  // animation frame (1-based) where the bomb leaves the pig's hand
+  RELEASE_FRAME: 4,
 } as const
 
 export const BOX_SPRITE = {
@@ -153,6 +155,33 @@ export const BOX = {
   PIECE_UP_MAX: 210,
   PIECE_LIFETIME_MS: 600,
   DEPTH: 7,
+  // a box pig grabs a ground crate and lobs it; it breaks on impact
+  THROW_RANGE: 160,
+  THROW_COOLDOWN_MS: 2400,
+  THROW_SPEED_X: 140,
+  THROW_SPEED_Y: -280,
+  THROW_DAMAGE: 1,
+  // animation frame (1-based) where the crate leaves the pig's hand
+  RELEASE_FRAME: 4,
+} as const
+
+export const PIG_BOX_SPRITE = {
+  FRAME_WIDTH: 26,
+  FRAME_HEIGHT: 30,
+} as const
+
+export const PIG_BOX_BODY = {
+  WIDTH: 14,
+  HEIGHT: 17,
+  OFFSET_X: 6,
+  OFFSET_Y: 13,
+} as const
+
+export const PIG_BOX_FRAMES = {
+  IDLE: 9,
+  RUN: 6,
+  PICK: 5,
+  THROW: 5,
 } as const
 
 export const DOOR_FRAMES = {
@@ -205,6 +234,8 @@ export const PIG = {
   ATTACK_RANGE: 30,
   ATTACK_VERTICAL: 12,
   ATTACK_COOLDOWN_MS: 1200,
+  // melee lands as the swing starts (1-based animation frame)
+  ATTACK_RELEASE_FRAME: 1,
   KNOCKBACK_SPEED: 160,
   KNOCKBACK_DRAG: 800,
   VISION_HEIGHT: 48,

@@ -18,7 +18,8 @@ export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
   [TILEMAP_KEY.LEVEL1]: {
     enemies: [
       { type: 'pig', col: 10, row: 13, patrol: 3 },
-      { type: 'bomb', col: 30, row: 13, patrol: 2 },
+      { type: 'thrower', col: 20, row: 13, patrol: 3 },
+      { type: 'thrower', col: 30, row: 13, patrol: 2 },
     ],
     boxes: [
       { col: 8, row: 13, loot: { kind: 'empty' } },
