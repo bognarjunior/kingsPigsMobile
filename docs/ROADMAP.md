@@ -117,10 +117,20 @@ Make it a real game loop: fight, collect, lose, retry.
 - [x] Diamond pickup + score counter on the HUD
 - [x] Heart/diamond idle animations (pulse/spin)
 - [x] Bomb pig: seek-and-arm ammo loop (hunts a loose bomb, picks it up, throws an
-      arcing fused bomb, then re-arms); `Bomb` projectile + `BombItem` + `LEVEL_BOMB_SUPPLY`
-- [ ] Checkpoint + respawn
-- [ ] Game over screen and restart flow (today King death just restarts the level)
-- [ ] Remaining pig types (box / cannon-match) and the King Pig boss
+      arcing fused bomb, then re-arms); `Bomb` projectile + `BombItem`
+- [x] Breakable loot boxes (replace loose pickups) + unified thrower (bomb **or** box) — `LevelContent`
+- [x] Attack-to-enter doors with forward/back navigation (level-1 entry door vanishes)
+- [x] Pig difficulty tiers — palette swap green→white→blue→red→gray, scaling HP/speed/damage; stomp = 2×;
+      throwers fall back to melee when out of ammo
+- [ ] **Persistence + anti-farm** — profile (diamonds / lives / upgrades + per-level loot-taken);
+      loot is one-time, enemies reset ([LEVEL_DESIGN](LEVEL_DESIGN.md) §7–§8). Real save wiring rides on Phase 6.
+- [ ] **Lives + death / game-over** flow (hearts→lose a life→restart; 0 lives→game over) (LEVEL_DESIGN §5)
+- [ ] **Triggered enemy waves** (zone-on-enter) (LEVEL_DESIGN §2)
+- [ ] **Shop scene** — spend diamonds on King upgrades: max health, damage, invuln, extra life (LEVEL_DESIGN §4)
+- [ ] **King Pig boss** — recurring & scaling, locked arena, summons waves (LEVEL_DESIGN §10)
+- [ ] (later) cannon-match pig
+
+> Full system design / decisions map lives in **[docs/LEVEL_DESIGN.md](LEVEL_DESIGN.md)**.
 
 **Acceptance:** attacking kills the Pig and the Pig can hurt the King; collecting items
 updates the HUD; dying shows game over and restart works. Verified on the iOS Simulator.
@@ -133,7 +143,8 @@ Close the loop with the native shell.
 
 - [ ] Emit all bridge events from the game: `game:ready`, `game:over`, `game:score`, `game:pause`
 - [ ] `GameBridge` routes typed `onMessage` events to handlers in the app
-- [ ] Native persistence via `storageService` (AsyncStorage): high score save/load
+- [ ] Native persistence via `storageService` (AsyncStorage): the player **profile**
+      (diamonds, lives, upgrades, per-level loot-taken, progress) — see LEVEL_DESIGN §7
 - [ ] `game:save` / `game:load` round-trip through the Bridge
 - [ ] App → game commands via `injectedJavaScript` (e.g. pause/resume from native)
 - [ ] App state via Context API (e.g. high score) wired to the bridge events

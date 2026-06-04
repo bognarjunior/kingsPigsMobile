@@ -117,17 +117,27 @@ King walks into it to collect).
   - **+ max health** (raise the heart cap — the only way to grow it)
   - **+ attack damage** (King hits harder)
   - **invulnerability** (a temporary shield / longer i-frames)
+  - **extra life** (top up the lives counter from §5)
   - full heal / refill hearts
 
 ---
 
-## 5. Hearts / lives
+## 5. Hearts, lives & death
 
-- Hearts heal the King and define the health bar (already built).
-- A **heart** is one possible box loot (`Loot.kind = 'heart'`). It **only refills lost hearts**,
-  up to the **current** max — it never raises the max.
-- **Raising the max heart cap is shop-only (paid with diamonds).** The old rule "auto +1 max every
-  10 hearts" is **removed**.
+Two separate resources:
+
+- **Hearts** = health *within* a level (the heart bar). Lost to damage; a **heart** box-loot refills
+  them up to the **current** max (never raises it). The max cap grows **only via the shop**
+  (diamonds). The old "auto +1 max every 10 hearts" rule is **removed**.
+- **Lives** = attempts that span levels and sessions. Hearts hitting **0 → lose one life** and the
+  current level restarts with hearts refilled. **0 lives → game over.** Lives are earned/bought and
+  **persist** (see §7).
+
+- 🔸 **OPEN — game over cost**: does game over keep the persistent profile (diamonds/upgrades) and
+  just send you back to the start/hub, or wipe the run? (Lean: keep the meta-profile; restart the
+  run. Decide when we build the death/game-over flow.)
+- 🔸 **OPEN — hearts between levels**: refill to full on each new level, or carry the current hearts
+  over? (Lean: refill to full at level start; the shop sells an extra full-heal.)
 
 ---
 
@@ -141,23 +151,82 @@ King walks into it to collect).
 
 ---
 
-## 7. Suggested implementation order
+## 7. Persistence (the save)
 
-1. Door rework (stand-in-front + attack-to-enter, back/forward, level-1 entry door vanish).
-2. Consolidate the three registries into `LevelContent`.
-3. Breakable boxes + loot (replaces loose pickups); reuse the ammo loop so box pigs throw them.
-4. Triggered enemy waves (zone-on-enter).
-5. Diamond wallet (persist across levels).
-6. Shop scene (catalog/prices — deferred).
-7. Boss arena / King Pig (uses waves + door lock).
+A single persistent **profile** is the player's meta-progression. It survives quitting and
+reopening the game — written through the Bridge → `storageService` (AsyncStorage), per CLAUDE.md;
+the game emits `game:save` / `game:load`, the app does the I/O. (Real wiring lands with the Bridge,
+**Phase 6**; until then a run-only in-memory profile stands in and resets on reload.)
+
+The profile holds:
+- **diamonds** wallet (currency)
+- **lives** counter (§5)
+- **upgrades** bought (max hearts, attack damage, …)
+- **per-level loot taken** — which boxes are already opened / pickups collected (see §8)
+- **progress** — levels reached / unlocked
+
+Saved on key events (level complete, purchase, life lost); loaded on boot.
+
+---
+
+## 8. Re-entry & anti-farm
+
+Levels can be re-entered (the back door), so loot must not regenerate.
+
+- **Loot is one-time.** Each box/pickup has a stable id (its `col,row` in that level). Once taken,
+  it's recorded in the profile; on re-entry that box spawns **already empty** (or not at all). No
+  item farming by walking back and forth.
+- **Enemies reset.** Re-entering re-spawns the pigs for a fresh fight — that's fine, since beating
+  them yields no currency (rewards come only from boxes).
+- Mechanically: today entering a door does `scene.restart`, which rebuilds everything. The change
+  is to **filter out already-taken loot** from `LevelContent.boxes` using the profile on build.
+
+---
+
+## 9. Level variety
+
+There is **no fixed enemy quota**. Each level authors its own `enemies` and `boxes` lists
+independently, so levels can be heavy, light, **enemy-free (objects only)**, or **box-free**
+(pure combat). Difficulty is shaped by counts + tiers + layout, not a global number.
+
+---
+
+## 10. King Pig — the boss (recurring, scaling)
+
+The King Pig is fought **several times**, each encounter **stronger** (higher tier / more health /
+more attacks), building to the final fight.
+
+- **Arena**: a locked room — the door **locks until the boss is beaten** (this is the "clear-room
+  gating" variant of §2's trigger). 
+- **Health bar** of its own (multi-hit), separate from the regular pigs.
+- **Summons waves**: during the fight it can trigger waves of coloured tier pigs (§2 + §2b).
+- 🔸 **OPEN**: the schedule (which levels host a boss), the boss's own moveset/attacks, its sprite
+  sheet, and how much it scales per encounter. Design these when we build the first boss.
+
+---
+
+## 11. Suggested implementation order
+
+1. ~~Door rework~~ ✅ (stand-in-front + attack-to-enter, back/forward, level-1 entry door vanish).
+2. ~~Consolidate registries into `LevelContent`~~ ✅
+3. ~~Breakable boxes + loot~~ ✅ · ~~unified thrower~~ ✅ · ~~pig tiers~~ ✅
+4. **Persistence + anti-farm** (profile: diamonds/lives/upgrades + per-level loot-taken). Foundation
+   for everything below — even though the real AsyncStorage wiring waits for the Bridge (Phase 6).
+5. Lives + death/game-over flow (§5).
+6. Triggered enemy waves (zone-on-enter, §2).
+7. Shop scene (spends diamonds on §4 upgrades — catalog still open).
+8. King Pig boss — recurring & scaling (§10).
 
 ---
 
 ## Open decisions checklist
 
-- [ ] §2 — wave trigger rule (zone-only vs. also clear-room gating) — *revisit at the boss*
+- [ ] §2 — wave trigger rule for non-boss rooms (zone-only vs. clear-room gating)
 - [ ] §4 — shop catalog, prices, and frequency — *deferred, revisit when building the shop*
+- [ ] §5 — game-over cost; hearts refill-vs-carry between levels
+- [ ] §10 — boss schedule, moveset, sprite, per-encounter scaling
 
 **Resolved:** box contents authored per box (empty / heart / diamonds); no loose items, all from
-boxes; ground boxes double as box-pig ammo and break into loot; hearts only refill (never raise
-the max); max heart cap raised only via the shop (auto +1-every-10 rule dropped).
+boxes; ground boxes double as thrower ammo and break into loot; hearts only refill (never raise the
+max); max heart cap raised only via the shop. Two resources — hearts (in-level) + lives (persistent).
+Re-entry: enemies reset, loot is one-time. No fixed enemy quota per level. Boss recurs and scales.
