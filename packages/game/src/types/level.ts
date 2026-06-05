@@ -85,10 +85,19 @@ export interface LevelSpawns {
 
 // everything that populates a level (entities/items), kept apart from the room
 // geometry in LevelDefinition. One per level, whatever the map's source.
+export type CannonFacing = 'left' | 'right'
+
+export interface CannonPlacement {
+  readonly col: number
+  readonly row: number
+  readonly facing: CannonFacing
+}
+
 export interface LevelContent {
   readonly enemies: readonly EnemySpawn[]
   readonly boxes: readonly BoxPlacement[]
   readonly bombSupply: readonly SpawnTile[]
+  readonly cannons: readonly CannonPlacement[]
 }
 
 export interface LevelDefinition {

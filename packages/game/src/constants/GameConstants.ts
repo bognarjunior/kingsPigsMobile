@@ -186,6 +186,61 @@ export const PIG_BOX_FRAMES = {
   THROW: 5,
 } as const
 
+export const CANNON_SPRITE = {
+  FRAME_WIDTH: 44,
+  FRAME_HEIGHT: 28,
+} as const
+
+export const MATCH_SPRITE = {
+  FRAME_WIDTH: 26,
+  FRAME_HEIGHT: 18,
+} as const
+
+export const CANNON_FRAMES = {
+  SHOOT: 4,
+} as const
+
+export const MATCH_FRAMES = {
+  LIGHT: 3,
+  ON: 3,
+  CANNON: 3,
+} as const
+
+export const CANNON_BALL_BODY = {
+  WIDTH: 12,
+  HEIGHT: 12,
+  OFFSET_X: 23,
+  OFFSET_Y: 13,
+} as const
+
+// A cannon is fixed scenery aiming one way (left by default; flipped to aim right).
+// Its match pig lights it when the King crosses the line of fire; killing the pig
+// silences it. The ball flies straight (no arc) and breaks on a wall or the King.
+export const CANNON = {
+  FIRE_RANGE: 220,
+  LINE_HEIGHT: 26,
+  COOLDOWN_MS: 2200,
+  BALL_DAMAGE: 1,
+  SHOOT_FPS: 16,
+  // animation frame (1-based) where the muzzle flashes and the ball leaves
+  SHOOT_RELEASE_FRAME: 2,
+  MUZZLE_OFFSET_X: 18,
+  MUZZLE_OFFSET_Y: -2,
+  // a pig stands at the back (breech, opposite the muzzle, where the fuse is) to light it
+  BREECH_OFFSET_X: 18,
+  // how near a pig must be to bother manning the cannon, and the arrival tolerance
+  OPERATE_SEEK_RANGE: 230,
+  OPERATE_REACH: 10,
+  // pause beside the cannon (lighting the fuse) before it fires
+  LIGHT_MS: 480,
+  // ballistic ball: forward with a slight lift, light drag bleeds the speed and a
+  // gentle (custom) gravity gives it a long, flat-ish cannonball arc
+  BALL_SPEED: 280,
+  BALL_LAUNCH_Y: -100,
+  BALL_DRAG_X: 15,
+  BALL_GRAVITY: 200,
+} as const
+
 export const DOOR_FRAMES = {
   OPENING: 5,
   CLOSING: 3,

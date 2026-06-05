@@ -3,7 +3,7 @@ import Phaser from 'phaser'
 import { BOMB, COMBAT, PIG, PLAYER } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
 import type { BreakableBox } from '@/entities/BreakableBox'
-import type { Pig } from '@/entities/Pig'
+import type { Enemy } from '@/entities/Enemy'
 import type { Player } from '@/entities/Player'
 import type { AttackEvent, BombExplodeEvent } from '@/types/enemy'
 
@@ -11,7 +11,7 @@ export class CombatSystem {
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly player: Player,
-    private readonly enemies: readonly Pig[],
+    private readonly enemies: readonly Enemy[],
     private readonly boxes: readonly BreakableBox[],
   ) {
     scene.events.on(ENTITY_EVENT.PLAYER_ATTACK, this.onPlayerAttack, this)

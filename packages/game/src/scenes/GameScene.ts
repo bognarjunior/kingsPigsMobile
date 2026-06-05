@@ -1,11 +1,13 @@
 import Phaser from 'phaser'
 
 import {
+  BOMB,
   BOMB_BODY,
   BOMB_SPRITE,
   BOX,
   BOX_BODY,
   BOX_SPRITE,
+  CANNON,
   COLORS,
   COMBAT,
   DOOR,
@@ -20,7 +22,10 @@ import { TILE_SIZE, TILESET } from '@/constants/tiles'
 import { Bomb } from '@/entities/Bomb'
 import { BombItem } from '@/entities/BombItem'
 import { BreakableBox } from '@/entities/BreakableBox'
+import { Cannon } from '@/entities/Cannon'
+import { CannonBall } from '@/entities/CannonBall'
 import { Door } from '@/entities/Door'
+import type { Enemy } from '@/entities/Enemy'
 import { Pickup } from '@/entities/Pickup'
 import { Pig } from '@/entities/Pig'
 import { PIG_CONFIGS } from '@/entities/pigConfigs'
@@ -32,15 +37,24 @@ import { CameraSystem } from '@/systems/CameraSystem'
 import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
-import type { AmmoKind, EnemySpawn, PigBody, ThrowBombEvent, ThrowBoxEvent } from '@/types/enemy'
+import type { AmmoKind, CannonFireEvent, EnemySpawn, PigBody, ThrowBombEvent, ThrowBoxEvent } from '@/types/enemy'
 import type { InputState } from '@/types/input'
-import type { BoxBrokenEvent, BoxPlacement, LevelEntrance, LevelInit, LevelPhase, SpawnTile } from '@/types/level'
+import type {
+  BoxBrokenEvent,
+  BoxPlacement,
+  CannonPlacement,
+  LevelEntrance,
+  LevelInit,
+  LevelPhase,
+  SpawnTile,
+} from '@/types/level'
 import { DiamondCounter } from '@/ui/DiamondCounter'
 import { HealthBar } from '@/ui/HealthBar'
 import { VirtualControls } from '@/ui/VirtualControls'
 import { sendToApp } from '@/utils/bridge'
 
 const DOOR_DEPTH = 5
+const ENEMY_DEPTH = 8
 const PLAYER_DEPTH = 10
 
 export class GameScene extends Phaser.Scene {
@@ -48,7 +62,7 @@ export class GameScene extends Phaser.Scene {
   private solidLayer!: Phaser.Tilemaps.TilemapLayer
   private entryDoor!: Door
   private exitDoor!: Door
-  private enemies: Pig[] = []
+  private enemies: Enemy[] = []
   private inputSystem!: InputSystem
   private virtualControls!: VirtualControls
   private phase: LevelPhase = 'intro'
@@ -100,7 +114,8 @@ export class GameScene extends Phaser.Scene {
     const boxes = this.spawnBoxes(content.boxes)
     const boxSupply = this.physics.add.group({ allowGravity: false, immovable: true })
     boxes.forEach((box) => boxSupply.add(box))
-    this.enemies = this.spawnEnemies(content.enemies, solidLayer, bombSupply, boxSupply)
+    const cannons = this.spawnCannons(content.cannons)
+    this.enemies = this.spawnEnemies(content.enemies, solidLayer, bombSupply, boxSupply, cannons)
     new CombatSystem(this, this.player, this.enemies, boxes)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, runProfile.diamonds)
@@ -108,6 +123,7 @@ export class GameScene extends Phaser.Scene {
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOX, this.throwBox, this)
     this.events.on(ENTITY_EVENT.BOX_BROKEN, this.dropLoot, this)
+    this.events.on(ENTITY_EVENT.CANNON_FIRE, this.fireCannonBall, this)
 
     const { widthInPixels, heightInPixels } = map
     this.physics.world.setBounds(0, 0, widthInPixels, heightInPixels)
@@ -187,6 +203,7 @@ export class GameScene extends Phaser.Scene {
     solidLayer: Phaser.Tilemaps.TilemapLayer,
     bombSupply: Phaser.Physics.Arcade.Group,
     boxSupply: Phaser.Physics.Arcade.Group,
+    cannons: readonly Cannon[],
   ): Pig[] {
     const ammoGroups: Record<AmmoKind, Phaser.Physics.Arcade.Group> = { bomb: bombSupply, box: boxSupply }
     return spawns.map((spawn) => {
@@ -195,6 +212,8 @@ export class GameScene extends Phaser.Scene {
       const x = spawn.col * TILE_SIZE
       const y = this.groundedFor(spawn.row * TILE_SIZE, config.body)
       const pig = new Pig(this, x, y, spawn.patrol * TILE_SIZE, config, tier)
+      pig.setDepth(ENEMY_DEPTH)
+      pig.setCannons(cannons)
       this.physics.add.collider(pig, solidLayer)
       this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
       config.ammo?.forEach((option) => {
@@ -238,7 +257,7 @@ export class GameScene extends Phaser.Scene {
 
   private throwBomb(event: ThrowBombEvent): void {
     const direction = Math.sign(event.targetX - event.x) || 1
-    const bomb = new Bomb(this, event.x, event.y, direction)
+    const bomb = new Bomb(this, event.x, event.y, direction * BOMB.THROW_SPEED_X, BOMB.THROW_SPEED_Y)
     this.physics.add.collider(bomb, this.solidLayer)
   }
 
@@ -257,7 +276,40 @@ export class GameScene extends Phaser.Scene {
     box.shatter()
   }
 
-  private tryStomp(pig: Pig): void {
+  // cannons are fixed scenery; any roaming pig can walk up and man them
+  private spawnCannons(placements: readonly CannonPlacement[]): Cannon[] {
+    return placements.map((placement) => {
+      const x = placement.col * TILE_SIZE
+      const y = placement.row * TILE_SIZE
+      return new Cannon(this, x, y, placement.facing)
+    })
+  }
+
+  private fireCannonBall(event: CannonFireEvent): void {
+    const ball = new CannonBall(this, event.x, event.y, event.directionX)
+    this.physics.add.collider(ball, this.solidLayer, () => this.cannonBallLanded(ball))
+    this.physics.add.overlap(this.player, ball, () => {
+      if (!ball.active) {
+        return
+      }
+      this.player.takeDamage(CANNON.BALL_DAMAGE)
+      ball.destroy()
+    })
+  }
+
+  // the ball reached a solid: it becomes a lit bomb that rests, fuses, then explodes
+  private cannonBallLanded(ball: CannonBall): void {
+    if (!ball.active) {
+      return
+    }
+    const x = ball.x
+    const y = ball.y
+    ball.destroy()
+    const bomb = new Bomb(this, x, y, 0, 0)
+    this.physics.add.collider(bomb, this.solidLayer)
+  }
+
+  private tryStomp(pig: Enemy): void {
     if (!pig.isAlive) {
       return
     }

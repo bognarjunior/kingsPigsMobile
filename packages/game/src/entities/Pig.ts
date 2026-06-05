@@ -2,7 +2,8 @@ import Phaser from 'phaser'
 
 import { PatrolBehavior } from '@/behaviors/PatrolBehavior'
 import { StateMachine } from '@/behaviors/StateMachine'
-import { BOMB, PIG } from '@/constants/GameConstants'
+import { BOMB, CANNON, PIG } from '@/constants/GameConstants'
+import type { Cannon } from '@/entities/Cannon'
 import { Enemy } from '@/entities/Enemy'
 import type { AmmoKind, ArmedSet, AttackBehavior, EnemyState, PigAnims, PigBody, PigConfig, PigTier } from '@/types/enemy'
 import type { Loot } from '@/types/level'
@@ -26,6 +27,8 @@ export class Pig extends Enemy {
   private readonly seeksAmmo: boolean
   private readonly slots = new Map<AmmoKind, AmmoSlot>()
   private readonly ammoSources: Phaser.Physics.Arcade.Group[] = []
+  private cannons: readonly Cannon[] = []
+  private isLighting = false
   private readonly meleeAttack?: AttackBehavior
   private activeAmmoAttack?: AttackBehavior
   private firingAttack?: AttackBehavior
@@ -84,6 +87,11 @@ export class Pig extends Enemy {
   // a thrower references every loose-ammo group it can hunt (bombs, boxes, ...)
   addAmmoSource(group: Phaser.Physics.Arcade.Group): void {
     this.ammoSources.push(group)
+  }
+
+  // every pig can man the level's cannons (any tier/type)
+  setCannons(cannons: readonly Cannon[]): void {
+    this.cannons = cannons
   }
 
   get wantsAmmo(): boolean {
@@ -163,12 +171,19 @@ export class Pig extends Enemy {
   }
 
   update(playerX: number, playerY: number): void {
-    if (this.isDead || this.isAttacking || this.isStunned || this.isPicking) {
+    if (this.isDead || this.isAttacking || this.isStunned || this.isPicking || this.isLighting) {
       this.setVelocityX(0)
       return
     }
     if (this.isHurt) {
       return // let the knockback slide; body drag decelerates it
+    }
+
+    // manning a cannon beats everything else when the King is in its line of fire
+    const cannon = this.readyCannon(playerX, playerY)
+    if (cannon) {
+      this.operateCannon(cannon)
+      return
     }
 
     const attack = this.currentAttack()
@@ -253,6 +268,49 @@ export class Pig extends Enemy {
       })
     })
     return bestX
+  }
+
+  // the nearest cannon that is ready, aimed at the King, and close enough to bother
+  private readyCannon(playerX: number, playerY: number): Cannon | undefined {
+    const now = this.scene.time.now
+    let best: Cannon | undefined
+    let bestDistance = Number.POSITIVE_INFINITY
+    this.cannons.forEach((cannon) => {
+      if (!cannon.active || !cannon.canFire(now) || !cannon.lineOfFire(playerX, playerY)) {
+        return
+      }
+      const distance = Math.abs(cannon.operatingX - this.x)
+      if (distance <= CANNON.OPERATE_SEEK_RANGE && distance < bestDistance) {
+        bestDistance = distance
+        best = cannon
+      }
+    })
+    return best
+  }
+
+  // walk to the breech, then pause to light the fuse; the cannon fires after
+  private operateCannon(cannon: Cannon): void {
+    const dx = cannon.operatingX - this.x
+    if (Math.abs(dx) > CANNON.OPERATE_REACH) {
+      const velocityX = Math.sign(dx) * PIG.CHASE_SPEED * this.speedScale
+      this.setVelocityX(velocityX)
+      this.handleMoveAnimation(velocityX)
+      return
+    }
+
+    this.setVelocityX(0)
+    this.setFlipX(cannon.x > this.x) // face the cannon to light its fuse
+    this.isLighting = true
+    this.stateMachine.setState('idle')
+    this.scene.time.delayedCall(CANNON.LIGHT_MS, () => {
+      if (!this.isLighting) {
+        return // cancelled by a hit/stomp/death mid-light
+      }
+      this.isLighting = false
+      if (cannon.active && cannon.canFire(this.scene.time.now)) {
+        cannon.fire()
+      }
+    })
   }
 
   private patrolStep(): void {
@@ -348,6 +406,7 @@ export class Pig extends Enemy {
 
   private cancelAttack(): void {
     this.isAttacking = false
+    this.isLighting = false
     if (this.firingAttack) {
       this.off(completeEvent(this.tierAnim(this.firingAttack.anim)))
     }

@@ -7,7 +7,9 @@ import { recolorSpriteSheet } from '@/systems/recolorTexture'
 import {
   BOMB_SPRITE,
   BOX_PIECE_SPRITE,
+  CANNON_SPRITE,
   DOOR_SPRITE,
+  MATCH_SPRITE,
   HEART_SPRITE,
   KING_SPRITE,
   NUMBER_SPRITE,
@@ -44,6 +46,12 @@ import bombOnUrl from '@/assets/bomb/on.png'
 import bombBoomUrl from '@/assets/bomb/boom.png'
 import boxIdleUrl from '@/assets/box/idle.png'
 import boxPiecesUrl from '@/assets/box/pieces.png'
+import cannonIdleUrl from '@/assets/cannon/idle.png'
+import cannonShootUrl from '@/assets/cannon/shoot.png'
+import cannonBallUrl from '@/assets/cannon/ball.png'
+import matchLightUrl from '@/assets/match/light.png'
+import matchOnUrl from '@/assets/match/on.png'
+import matchCannonUrl from '@/assets/match/cannon.png'
 import doorIdleUrl from '@/assets/door/idle.png'
 import doorOpeningUrl from '@/assets/door/opening.png'
 import doorClosingUrl from '@/assets/door/closing.png'
@@ -113,6 +121,15 @@ export class BootScene extends Phaser.Scene {
       frameWidth: BOX_PIECE_SPRITE.FRAME_WIDTH,
       frameHeight: BOX_PIECE_SPRITE.FRAME_HEIGHT,
     })
+
+    const cannon = { frameWidth: CANNON_SPRITE.FRAME_WIDTH, frameHeight: CANNON_SPRITE.FRAME_HEIGHT }
+    this.load.image(TEXTURE_KEY.CANNON_IDLE, cannonIdleUrl)
+    this.load.image(TEXTURE_KEY.CANNON_BALL, cannonBallUrl)
+    this.load.spritesheet(TEXTURE_KEY.CANNON_SHOOT, cannonShootUrl, cannon)
+    const match = { frameWidth: MATCH_SPRITE.FRAME_WIDTH, frameHeight: MATCH_SPRITE.FRAME_HEIGHT }
+    this.load.spritesheet(TEXTURE_KEY.MATCH_LIGHT, matchLightUrl, match)
+    this.load.spritesheet(TEXTURE_KEY.MATCH_ON, matchOnUrl, match)
+    this.load.spritesheet(TEXTURE_KEY.MATCH_CANNON, matchCannonUrl, match)
 
     const door = { frameWidth: DOOR_SPRITE.FRAME_WIDTH, frameHeight: DOOR_SPRITE.FRAME_HEIGHT }
     this.load.spritesheet(TEXTURE_KEY.DOOR_IDLE, doorIdleUrl, door)

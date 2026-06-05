@@ -16,24 +16,10 @@ export const LEVEL_DEFINITIONS: Readonly<Record<string, LevelDefinition>> = {
 //   bombSupply — loose bombs a bomb pig hunts, picks up to re-arm, then throws
 export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
   [TILEMAP_KEY.LEVEL1]: {
-    enemies: [
-      { type: 'pig', col: 10, row: 13, patrol: 2, tier: 0 },
-      { type: 'pig', col: 16, row: 13, patrol: 2, tier: 1 },
-      { type: 'thrower', col: 24, row: 13, patrol: 3, tier: 2 },
-      { type: 'thrower', col: 32, row: 13, patrol: 3, tier: 3 },
-      { type: 'pig', col: 40, row: 13, patrol: 2, tier: 4 },
-    ],
-    boxes: [
-      { col: 8, row: 13, loot: { kind: 'empty' } },
-      { col: 14, row: 13, loot: { kind: 'heart' } },
-      { col: 22, row: 13, loot: { kind: 'diamonds', amount: 1 } },
-      { col: 24, row: 13, loot: { kind: 'empty' } },
-      { col: 34, row: 13, loot: { kind: 'heart' } },
-      { col: 38, row: 13, loot: { kind: 'diamonds', amount: 1 } },
-      { col: 40, row: 13, loot: { kind: 'heart' } },
-      { col: 44, row: 13, loot: { kind: 'diamonds', amount: 1 } },
-    ],
-    bombSupply: [18, 26, 36, 42].map((col) => ({ col, row: 13 })),
+    enemies: [{ type: 'pig', col: 30, row: 13, patrol: 3, tier: 3 }],
+    boxes: [],
+    bombSupply: [],
+    cannons: [{ col: 36, row: 13, facing: 'left' }],
   },
   [TILEMAP_KEY.LEVEL2]: {
     enemies: [
@@ -42,10 +28,11 @@ export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
     ],
     boxes: [],
     bombSupply: [],
+    cannons: [],
   },
 }
 
-const EMPTY_CONTENT: LevelContent = { enemies: [], boxes: [], bombSupply: [] }
+const EMPTY_CONTENT: LevelContent = { enemies: [], boxes: [], bombSupply: [], cannons: [] }
 
 export function levelContent(key: string): LevelContent {
   return LEVEL_CONTENT[key] ?? EMPTY_CONTENT

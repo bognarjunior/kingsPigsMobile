@@ -14,7 +14,9 @@ const DEPTH = 9
 export class Bomb extends Phaser.Physics.Arcade.Sprite {
   private exploded = false
 
-  constructor(scene: Phaser.Scene, x: number, y: number, directionX: number) {
+  // velocityX/Y let it be thrown in an arc (bomb pig) or dropped in place (a
+  // cannonball that landed); either way it burns its fuse, then explodes.
+  constructor(scene: Phaser.Scene, x: number, y: number, velocityX: number, velocityY: number) {
     super(scene, x, y, TEXTURE_KEY.BOMB_ON, 0)
 
     scene.add.existing(this)
@@ -24,7 +26,7 @@ export class Bomb extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body
     body.setSize(BOMB_BODY.WIDTH, BOMB_BODY.HEIGHT, false)
     body.setOffset(BOMB_BODY.OFFSET_X, BOMB_BODY.OFFSET_Y)
-    body.setVelocity(directionX * BOMB.THROW_SPEED_X, BOMB.THROW_SPEED_Y)
+    body.setVelocity(velocityX, velocityY)
 
     this.play(ANIM_KEY.BOMB_ON, true)
     scene.time.delayedCall(BOMB.FUSE_MS, () => this.explode())

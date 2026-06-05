@@ -71,6 +71,12 @@ export interface ThrowBoxEvent {
   readonly loot: Loot
 }
 
+export interface CannonFireEvent {
+  readonly x: number
+  readonly y: number
+  readonly directionX: number
+}
+
 export interface BombExplodeEvent {
   readonly x: number
   readonly y: number
