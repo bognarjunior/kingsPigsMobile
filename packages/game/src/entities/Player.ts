@@ -21,7 +21,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private inCutscene = false
   private hearts: number = PLAYER.MAX_HEARTS
   private maxHeartsCount: number = PLAYER.MAX_HEARTS
-  private heartsCollected = 0
   private invulnerableUntil = 0
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -70,18 +69,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, runProfile.diamonds)
   }
 
-  // collecting a heart heals one (up to the current max) and counts toward a
-  // max-hearts upgrade every PLAYER.HEARTS_PER_MAX_UP hearts (capped).
+  // a heart only refills lost health, up to the current max; raising the max is
+  // a shop purchase (see docs/LEVEL_DESIGN.md), never automatic.
   collectHeart(): void {
     this.hearts = Math.min(this.maxHeartsCount, this.hearts + 1)
-    this.heartsCollected += 1
     this.scene.events.emit(ENTITY_EVENT.PLAYER_HEALTH, this.hearts)
-
-    const upgraded = this.heartsCollected % PLAYER.HEARTS_PER_MAX_UP === 0
-    if (upgraded && this.maxHeartsCount < PLAYER.MAX_HEARTS_CAP) {
-      this.maxHeartsCount += 1
-      this.scene.events.emit(ENTITY_EVENT.PLAYER_MAX_HEARTS, this.maxHeartsCount)
-    }
   }
 
   beginCutscene(): void {

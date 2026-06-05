@@ -63,6 +63,7 @@ import barRightUrl from '@/assets/hud/bar-right.png'
 import heartUrl from '@/assets/hud/heart.png'
 import diamondUrl from '@/assets/hud/diamond.png'
 import numbersUrl from '@/assets/hud/numbers.png'
+import kingHeadUrl from '@/assets/hud/king-head.png'
 import bigHeartUrl from '@/assets/pickups/heart.png'
 import bigDiamondUrl from '@/assets/pickups/diamond.png'
 import level1 from '@/assets/levels/level1.json'
@@ -156,6 +157,7 @@ export class BootScene extends Phaser.Scene {
       frameWidth: NUMBER_SPRITE.FRAME_WIDTH,
       frameHeight: NUMBER_SPRITE.FRAME_HEIGHT,
     })
+    this.load.image(TEXTURE_KEY.KING_HEAD, kingHeadUrl)
     this.load.tilemapTiledJSON(TILEMAP_KEY.LEVEL1, level1)
   }
 

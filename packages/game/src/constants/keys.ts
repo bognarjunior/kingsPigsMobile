@@ -48,6 +48,7 @@ export const TEXTURE_KEY = {
   DIAMOND: 'diamond',
   BIG_DIAMOND: 'big-diamond',
   NUMBERS: 'numbers',
+  KING_HEAD: 'king-head',
   DOOR_IDLE: 'door-idle',
   DOOR_OPENING: 'door-opening',
   DOOR_CLOSING: 'door-closing',

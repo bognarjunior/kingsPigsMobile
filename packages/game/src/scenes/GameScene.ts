@@ -49,7 +49,9 @@ import type {
   SpawnTile,
 } from '@/types/level'
 import { DiamondCounter } from '@/ui/DiamondCounter'
+import { GameOverOverlay } from '@/ui/GameOverOverlay'
 import { HealthBar } from '@/ui/HealthBar'
+import { LivesCounter } from '@/ui/LivesCounter'
 import { VirtualControls } from '@/ui/VirtualControls'
 import { sendToApp } from '@/utils/bridge'
 
@@ -119,7 +121,8 @@ export class GameScene extends Phaser.Scene {
     new CombatSystem(this, this.player, this.enemies, boxes)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, runProfile.diamonds)
-    this.events.once(ENTITY_EVENT.PLAYER_DIED, () => this.scene.restart({ levelKey: this.levelKey }))
+    new LivesCounter(this, runProfile.lives)
+    this.events.once(ENTITY_EVENT.PLAYER_DIED, this.handlePlayerDied, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOX, this.throwBox, this)
     this.events.on(ENTITY_EVENT.BOX_BROKEN, this.dropLoot, this)
@@ -474,6 +477,25 @@ export class GameScene extends Phaser.Scene {
       throw new Error(`no known tileset found for level "${this.levelKey}"`)
     }
     return tilesets
+  }
+
+  // out of hearts: spend a life and retry this level, or game over at zero lives
+  private handlePlayerDied(): void {
+    runProfile.loseLife()
+    if (runProfile.lives > 0) {
+      this.scene.restart({ levelKey: this.levelKey, entrance: this.entrance })
+      return
+    }
+    this.handleGameOver()
+  }
+
+  private handleGameOver(): void {
+    this.phase = 'outro'
+    sendToApp(GAME_EVENT.OVER)
+    new GameOverOverlay(this, () => {
+      runProfile.resetRun()
+      this.scene.restart({ levelKey: TILEMAP_KEY.LEVEL1, entrance: 'entry' })
+    })
   }
 
   private handleShutdown(): void {

@@ -271,6 +271,7 @@ export const PLAYER = {
   MAX_HEARTS: 3,
   MAX_HEARTS_CAP: 10,
   HEARTS_PER_MAX_UP: 10,
+  START_LIVES: 3,
   HURT_INVULN_MS: 1500,
   STOMP_BOUNCE: 260,
   SPAWN_X: 80,
@@ -412,4 +413,14 @@ export const HUD = {
   DIGIT_X: 24,
   DIGIT_Y: 45,
   DIGIT_SPACING: 7,
+  // lives (King-head icon + count) anchored top-right
+  LIVES_ICON_X: 455,
+  LIVES_ICON_Y: 12,
+  LIVES_DIGIT_X: 466,
+  LIVES_DIGIT_Y: 8,
+} as const
+
+export const KING_HEAD_SPRITE = {
+  FRAME_WIDTH: 17,
+  FRAME_HEIGHT: 18,
 } as const
