@@ -1,5 +1,7 @@
 import Phaser from 'phaser'
 
+import { FONT_FAMILY } from '@/constants/GameConstants'
+
 const DEPTH = 200
 const DIM_ALPHA = 0.92
 
@@ -18,13 +20,13 @@ export class GameOverOverlay {
       .setDepth(DEPTH)
 
     scene.add
-      .text(cx, cy - 14, 'GAME OVER', { fontFamily: 'monospace', fontSize: '24px', color: '#ffffff' })
+      .text(cx, cy - 16, 'GAME OVER', { fontFamily: FONT_FAMILY, fontSize: '24px', color: '#ffffff' })
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(DEPTH + 1)
 
     scene.add
-      .text(cx, cy + 16, 'tap to retry', { fontFamily: 'monospace', fontSize: '12px', color: '#cfcfcf' })
+      .text(cx, cy + 18, 'TAP TO RETRY', { fontFamily: FONT_FAMILY, fontSize: '8px', color: '#cfcfcf' })
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(DEPTH + 1)

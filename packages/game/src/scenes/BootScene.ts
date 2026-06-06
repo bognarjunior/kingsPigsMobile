@@ -10,6 +10,7 @@ import {
   BOX_PIG_SPRITE,
   CANNON_SPRITE,
   DOOR_SPRITE,
+  FONT_FAMILY,
   MATCH_SPRITE,
   HEART_SPRITE,
   KING_SPRITE,
@@ -72,6 +73,7 @@ import numbersUrl from '@/assets/hud/numbers.png'
 import kingHeadUrl from '@/assets/hud/king-head.png'
 import bigHeartUrl from '@/assets/pickups/heart.png'
 import bigDiamondUrl from '@/assets/pickups/diamond.png'
+import pressStart2pUrl from '@/assets/fonts/PressStart2P.ttf'
 import level1 from '@/assets/levels/level1.json'
 
 export class BootScene extends Phaser.Scene {
@@ -177,7 +179,19 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     this.buildTierTextures()
     registerAnimations(this)
-    this.scene.start(SCENE_KEY.MENU)
+    this.startWhenFontReady()
+  }
+
+  // the pixel font must be ready before any scene draws text, so gate on it
+  private startWhenFontReady(): void {
+    const font = new FontFace(FONT_FAMILY, `url(${pressStart2pUrl})`)
+    font
+      .load()
+      .then((loaded) => {
+        document.fonts.add(loaded)
+      })
+      .catch(() => undefined)
+      .finally(() => this.scene.start(SCENE_KEY.MENU))
   }
 
   // palette-swap each pig sheet into its coloured tiers before animations register

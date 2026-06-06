@@ -5,6 +5,10 @@ export const DISPLAY = {
   HEIGHT: 270,
 } as const
 
+// pixel font (Press Start 2P) used for all in-game text; loaded in BootScene.
+// Renders crisp at multiples of 8px.
+export const FONT_FAMILY = 'PressStart2P'
+
 export const COLORS = {
   BACKGROUND: 0x3f3851,
   GROUND: 0x3d2b1f,
