@@ -288,6 +288,11 @@ export const DOOR = {
   INTERACT_RANGE: 28,
   // first level has no "back": the entry door lingers, then disappears
   VANISH_DELAY_MS: 600,
+  // a wave door materialises when the King comes this close (horizontally)
+  SPAWN_TRIGGER_RANGE: 120,
+  // gap between pigs released in one wave, and the door's fade in/out
+  WAVE_INTERVAL_MS: 420,
+  WAVE_FADE_MS: 150,
 } as const
 
 export const ANIM = {

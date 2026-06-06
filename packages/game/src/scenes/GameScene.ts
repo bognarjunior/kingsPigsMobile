@@ -47,6 +47,8 @@ import type {
   CannonFireEvent,
   EnemySpawn,
   PigBody,
+  PigConfig,
+  PigTier,
   ThrowBombEvent,
   ThrowBoxEvent,
 } from '@/types/enemy'
@@ -55,6 +57,7 @@ import type {
   BoxBrokenEvent,
   BoxPlacement,
   CannonPlacement,
+  DoorWave,
   LevelEntrance,
   LevelInit,
   LevelPhase,
@@ -78,6 +81,9 @@ export class GameScene extends Phaser.Scene {
   private exitDoor!: Door
   private enemies: Enemy[] = []
   private cannons: Cannon[] = []
+  private bombSupply!: Phaser.Physics.Arcade.Group
+  private boxSupply!: Phaser.Physics.Arcade.Group
+  private doorSpawners: { door: Door; wave: DoorWave; triggered: boolean }[] = []
   private inputSystem!: InputSystem
   private virtualControls!: VirtualControls
   private phase: LevelPhase = 'intro'
@@ -125,14 +131,15 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, solidLayer)
 
     const content = levelContent(this.levelKey)
-    const bombSupply = this.spawnBombSupply(content.bombSupply)
+    this.bombSupply = this.spawnBombSupply(content.bombSupply)
     const boxes = this.spawnBoxes(content.boxes)
-    const boxSupply = this.physics.add.group({ allowGravity: false, immovable: true })
-    boxes.forEach((box) => boxSupply.add(box))
+    this.boxSupply = this.physics.add.group({ allowGravity: false, immovable: true })
+    boxes.forEach((box) => this.boxSupply.add(box))
     this.cannons = this.spawnCannons(content.cannons)
-    const pigs = this.spawnEnemies(content.enemies, solidLayer, bombSupply, boxSupply, this.cannons)
+    const pigs = this.spawnEnemies(content.enemies)
     const boxPigs = this.spawnBoxPigs(content.boxPigs, solidLayer)
     this.enemies = [...pigs, ...boxPigs]
+    this.doorSpawners = this.spawnDoorSpawners(content.doorWaves)
     new CombatSystem(this, this.player, this.enemies, boxes)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, runProfile.diamonds)
@@ -169,6 +176,50 @@ export class GameScene extends Phaser.Scene {
         enemy.update(this.player.x, this.player.y)
       }
     })
+    this.updateDoorSpawners()
+  }
+
+  // a wave door materialises the first time the King comes near its spot
+  private updateDoorSpawners(): void {
+    this.doorSpawners.forEach((spawner) => {
+      if (spawner.triggered) {
+        return
+      }
+      if (Math.abs(this.player.x - spawner.door.x) <= DOOR.SPAWN_TRIGGER_RANGE) {
+        spawner.triggered = true
+        this.triggerWave(spawner.door, spawner.wave)
+      }
+    })
+  }
+
+  // fade the door in, open it, release the wave one pig at a time, then vanish
+  private triggerWave(door: Door, wave: DoorWave): void {
+    door.setVisible(true)
+    door.setAlpha(0)
+    this.tweens.add({
+      targets: door,
+      alpha: 1,
+      duration: DOOR.WAVE_FADE_MS,
+      onComplete: () => door.open(() => this.releaseWave(door, wave, wave.count)),
+    })
+  }
+
+  private releaseWave(door: Door, wave: DoorWave, remaining: number): void {
+    this.spawnWavePig(door.x, wave)
+    if (remaining > 1) {
+      this.time.delayedCall(DOOR.WAVE_INTERVAL_MS, () => this.releaseWave(door, wave, remaining - 1))
+      return
+    }
+    door.close(() => {
+      this.tweens.add({ targets: door, alpha: 0, duration: DOOR.WAVE_FADE_MS, onComplete: () => door.destroy() })
+    })
+  }
+
+  private spawnWavePig(x: number, wave: DoorWave): void {
+    const config = PIG_CONFIGS[wave.type]
+    const tier = PIG_TIERS[wave.tier ?? 0] ?? PIG_TIERS[0]
+    const y = this.groundedFor(wave.row * TILE_SIZE, config.body)
+    this.enemies.push(this.addPig(config, tier, x, y, wave.patrol * TILE_SIZE))
   }
 
   // The attack press doubles as "open door". A nearby door consumes the press
@@ -217,30 +268,40 @@ export class GameScene extends Phaser.Scene {
     )
   }
 
-  private spawnEnemies(
-    spawns: readonly EnemySpawn[],
-    solidLayer: Phaser.Tilemaps.TilemapLayer,
-    bombSupply: Phaser.Physics.Arcade.Group,
-    boxSupply: Phaser.Physics.Arcade.Group,
-    cannons: readonly Cannon[],
-  ): Pig[] {
-    const ammoGroups: Record<AmmoKind, Phaser.Physics.Arcade.Group> = { bomb: bombSupply, box: boxSupply }
+  private spawnEnemies(spawns: readonly EnemySpawn[]): Pig[] {
     return spawns.map((spawn) => {
       const config = PIG_CONFIGS[spawn.type]
       const tier = PIG_TIERS[spawn.tier ?? 0] ?? PIG_TIERS[0]
       const x = spawn.col * TILE_SIZE
       const y = this.groundedFor(spawn.row * TILE_SIZE, config.body)
-      const pig = new Pig(this, x, y, spawn.patrol * TILE_SIZE, config, tier)
-      pig.setDepth(ENEMY_DEPTH)
-      pig.setCannons(cannons)
-      this.physics.add.collider(pig, solidLayer)
-      this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
-      config.ammo?.forEach((option) => {
-        const group = ammoGroups[option.kind]
-        pig.addAmmoSource(group)
-        this.physics.add.overlap(pig, group, (_, item) => this.tryArm(pig, item as BombItem | BreakableBox))
-      })
-      return pig
+      return this.addPig(config, tier, x, y, spawn.patrol * TILE_SIZE)
+    })
+  }
+
+  // create a pig and wire it up (collider, stomp, cannons, ammo). Used by fixed
+  // spawns, door spawners, and box-pig hatches — the caller tracks it in `enemies`.
+  private addPig(config: PigConfig, tier: PigTier, x: number, y: number, patrolRange: number): Pig {
+    const ammoGroups: Record<AmmoKind, Phaser.Physics.Arcade.Group> = { bomb: this.bombSupply, box: this.boxSupply }
+    const pig = new Pig(this, x, y, patrolRange, config, tier)
+    pig.setDepth(ENEMY_DEPTH)
+    pig.setCannons(this.cannons)
+    this.physics.add.collider(pig, this.solidLayer)
+    this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
+    config.ammo?.forEach((option) => {
+      const group = ammoGroups[option.kind]
+      pig.addAmmoSource(group)
+      this.physics.add.overlap(pig, group, (_, item) => this.tryArm(pig, item as BombItem | BreakableBox))
+    })
+    return pig
+  }
+
+  // an invisible door per wave; it materialises when the King triggers it
+  private spawnDoorSpawners(waves: readonly DoorWave[]): { door: Door; wave: DoorWave; triggered: boolean }[] {
+    return waves.map((wave) => {
+      const door = new Door(this, wave.col * TILE_SIZE, wave.row * TILE_SIZE)
+      door.setDepth(DOOR_DEPTH)
+      door.setVisible(false)
+      return { door, wave, triggered: false }
     })
   }
 
@@ -369,13 +430,8 @@ export class GameScene extends Phaser.Scene {
   // a settled crate burst open: drop a real pig where it broke and track it
   private revealBoxPig(event: BoxPigRevealEvent): void {
     const config = PIG_CONFIGS.pig
-    const tier = PIG_TIERS[0]
     const y = this.groundedFor(event.floorY, config.body)
-    const pig = new Pig(this, event.x, y, BOX_PIG.REVEAL_PATROL_TILES * TILE_SIZE, config, tier)
-    pig.setDepth(ENEMY_DEPTH)
-    pig.setCannons(this.cannons)
-    this.physics.add.collider(pig, this.solidLayer)
-    this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
+    const pig = this.addPig(config, PIG_TIERS[0], event.x, y, BOX_PIG.REVEAL_PATROL_TILES * TILE_SIZE)
     this.enemies.push(pig)
   }
 

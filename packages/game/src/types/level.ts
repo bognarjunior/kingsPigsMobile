@@ -100,6 +100,12 @@ export interface LevelContent {
   readonly cannons: readonly CannonPlacement[]
   // crate-disguised pigs, placed among the loot boxes for camouflage
   readonly boxPigs: readonly SpawnTile[]
+  // triggered waves: a door materialises near the King, releases `count` pigs, vanishes
+  readonly doorWaves: readonly DoorWave[]
+}
+
+export interface DoorWave extends EnemySpawn {
+  readonly count: number
 }
 
 export interface LevelDefinition {

@@ -30,6 +30,8 @@ export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
       { col: 19, row: 13 },
       { col: 31, row: 13 },
     ],
+    // a door appears near the King, releases a 3-pig wave, then vanishes
+    doorWaves: [{ type: 'pig', col: 40, row: 13, patrol: 2, tier: 2, count: 3 }],
   },
   [TILEMAP_KEY.LEVEL2]: {
     enemies: [
@@ -40,10 +42,18 @@ export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
     bombSupply: [],
     cannons: [],
     boxPigs: [],
+    doorWaves: [],
   },
 }
 
-const EMPTY_CONTENT: LevelContent = { enemies: [], boxes: [], bombSupply: [], cannons: [], boxPigs: [] }
+const EMPTY_CONTENT: LevelContent = {
+  enemies: [],
+  boxes: [],
+  bombSupply: [],
+  cannons: [],
+  boxPigs: [],
+  doorWaves: [],
+}
 
 export function levelContent(key: string): LevelContent {
   return LEVEL_CONTENT[key] ?? EMPTY_CONTENT
