@@ -18,6 +18,7 @@ export const ENTITY_EVENT = {
   ENEMY_THROW_BOX: 'enemy:throw-box',
   BOMB_EXPLODE: 'bomb:explode',
   BOX_BROKEN: 'box:broken',
+  BOXPIG_REVEAL: 'boxpig:reveal',
   CANNON_FIRE: 'cannon:fire',
   PLAYER_HEALTH: 'player:health',
   PLAYER_MAX_HEARTS: 'player:max-hearts',

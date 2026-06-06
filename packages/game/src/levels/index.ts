@@ -16,10 +16,20 @@ export const LEVEL_DEFINITIONS: Readonly<Record<string, LevelDefinition>> = {
 //   bombSupply — loose bombs a bomb pig hunts, picks up to re-arm, then throws
 export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
   [TILEMAP_KEY.LEVEL1]: {
-    enemies: [{ type: 'pig', col: 30, row: 13, patrol: 3, tier: 3 }],
-    boxes: [],
+    enemies: [{ type: 'pig', col: 10, row: 13, patrol: 2, tier: 0 }],
+    boxes: [
+      { col: 16, row: 13, loot: { kind: 'diamonds', amount: 1 } },
+      { col: 22, row: 13, loot: { kind: 'heart' } },
+      { col: 28, row: 13, loot: { kind: 'empty' } },
+      { col: 34, row: 13, loot: { kind: 'diamonds', amount: 1 } },
+    ],
     bombSupply: [],
-    cannons: [{ col: 36, row: 13, facing: 'left' }],
+    cannons: [],
+    // disguised among the loot crates above — the King can't tell which is which
+    boxPigs: [
+      { col: 19, row: 13 },
+      { col: 31, row: 13 },
+    ],
   },
   [TILEMAP_KEY.LEVEL2]: {
     enemies: [
@@ -29,10 +39,11 @@ export const LEVEL_CONTENT: Readonly<Record<string, LevelContent>> = {
     boxes: [],
     bombSupply: [],
     cannons: [],
+    boxPigs: [],
   },
 }
 
-const EMPTY_CONTENT: LevelContent = { enemies: [], boxes: [], bombSupply: [], cannons: [] }
+const EMPTY_CONTENT: LevelContent = { enemies: [], boxes: [], bombSupply: [], cannons: [], boxPigs: [] }
 
 export function levelContent(key: string): LevelContent {
   return LEVEL_CONTENT[key] ?? EMPTY_CONTENT

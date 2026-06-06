@@ -7,6 +7,7 @@ import { recolorSpriteSheet } from '@/systems/recolorTexture'
 import {
   BOMB_SPRITE,
   BOX_PIECE_SPRITE,
+  BOX_PIG_SPRITE,
   CANNON_SPRITE,
   DOOR_SPRITE,
   MATCH_SPRITE,
@@ -46,6 +47,11 @@ import bombOnUrl from '@/assets/bomb/on.png'
 import bombBoomUrl from '@/assets/bomb/boom.png'
 import boxIdleUrl from '@/assets/box/idle.png'
 import boxPiecesUrl from '@/assets/box/pieces.png'
+import boxPigLookUrl from '@/assets/box-pig/look.png'
+import boxPigAnticipationUrl from '@/assets/box-pig/anticipation.png'
+import boxPigJumpUrl from '@/assets/box-pig/jump.png'
+import boxPigFallUrl from '@/assets/box-pig/fall.png'
+import boxPigGroundUrl from '@/assets/box-pig/ground.png'
 import cannonIdleUrl from '@/assets/cannon/idle.png'
 import cannonShootUrl from '@/assets/cannon/shoot.png'
 import cannonBallUrl from '@/assets/cannon/ball.png'
@@ -122,6 +128,13 @@ export class BootScene extends Phaser.Scene {
       frameWidth: BOX_PIECE_SPRITE.FRAME_WIDTH,
       frameHeight: BOX_PIECE_SPRITE.FRAME_HEIGHT,
     })
+
+    const boxPig = { frameWidth: BOX_PIG_SPRITE.FRAME_WIDTH, frameHeight: BOX_PIG_SPRITE.FRAME_HEIGHT }
+    this.load.spritesheet(TEXTURE_KEY.BOX_PIG_LOOK, boxPigLookUrl, boxPig)
+    this.load.spritesheet(TEXTURE_KEY.BOX_PIG_ANTICIPATION, boxPigAnticipationUrl, boxPig)
+    this.load.spritesheet(TEXTURE_KEY.BOX_PIG_JUMP, boxPigJumpUrl, boxPig)
+    this.load.image(TEXTURE_KEY.BOX_PIG_FALL, boxPigFallUrl)
+    this.load.image(TEXTURE_KEY.BOX_PIG_GROUND, boxPigGroundUrl)
 
     const cannon = { frameWidth: CANNON_SPRITE.FRAME_WIDTH, frameHeight: CANNON_SPRITE.FRAME_HEIGHT }
     this.load.image(TEXTURE_KEY.CANNON_IDLE, cannonIdleUrl)

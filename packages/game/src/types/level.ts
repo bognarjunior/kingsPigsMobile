@@ -98,6 +98,8 @@ export interface LevelContent {
   readonly boxes: readonly BoxPlacement[]
   readonly bombSupply: readonly SpawnTile[]
   readonly cannons: readonly CannonPlacement[]
+  // crate-disguised pigs, placed among the loot boxes for camouflage
+  readonly boxPigs: readonly SpawnTile[]
 }
 
 export interface LevelDefinition {

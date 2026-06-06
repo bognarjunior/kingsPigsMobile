@@ -77,6 +77,11 @@ export interface CannonFireEvent {
   readonly directionX: number
 }
 
+export interface BoxPigRevealEvent {
+  readonly x: number
+  readonly floorY: number
+}
+
 export interface BombExplodeEvent {
   readonly x: number
   readonly y: number

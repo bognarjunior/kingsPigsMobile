@@ -6,6 +6,9 @@ import {
   BOMB_SPRITE,
   BOX,
   BOX_BODY,
+  BOX_PIG,
+  BOX_PIG_BODY,
+  BOX_PIG_SPRITE,
   BOX_SPRITE,
   CANNON,
   COLORS,
@@ -21,6 +24,7 @@ import { ANIM_KEY, LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_K
 import { TILE_SIZE, TILESET } from '@/constants/tiles'
 import { Bomb } from '@/entities/Bomb'
 import { BombItem } from '@/entities/BombItem'
+import { BoxPig } from '@/entities/BoxPig'
 import { BreakableBox } from '@/entities/BreakableBox'
 import { Cannon } from '@/entities/Cannon'
 import { CannonBall } from '@/entities/CannonBall'
@@ -37,7 +41,15 @@ import { CameraSystem } from '@/systems/CameraSystem'
 import { CombatSystem } from '@/systems/CombatSystem'
 import { InputSystem } from '@/systems/InputSystem'
 import { LevelBuilder } from '@/systems/LevelBuilder'
-import type { AmmoKind, CannonFireEvent, EnemySpawn, PigBody, ThrowBombEvent, ThrowBoxEvent } from '@/types/enemy'
+import type {
+  AmmoKind,
+  BoxPigRevealEvent,
+  CannonFireEvent,
+  EnemySpawn,
+  PigBody,
+  ThrowBombEvent,
+  ThrowBoxEvent,
+} from '@/types/enemy'
 import type { InputState } from '@/types/input'
 import type {
   BoxBrokenEvent,
@@ -65,6 +77,7 @@ export class GameScene extends Phaser.Scene {
   private entryDoor!: Door
   private exitDoor!: Door
   private enemies: Enemy[] = []
+  private cannons: Cannon[] = []
   private inputSystem!: InputSystem
   private virtualControls!: VirtualControls
   private phase: LevelPhase = 'intro'
@@ -116,8 +129,10 @@ export class GameScene extends Phaser.Scene {
     const boxes = this.spawnBoxes(content.boxes)
     const boxSupply = this.physics.add.group({ allowGravity: false, immovable: true })
     boxes.forEach((box) => boxSupply.add(box))
-    const cannons = this.spawnCannons(content.cannons)
-    this.enemies = this.spawnEnemies(content.enemies, solidLayer, bombSupply, boxSupply, cannons)
+    this.cannons = this.spawnCannons(content.cannons)
+    const pigs = this.spawnEnemies(content.enemies, solidLayer, bombSupply, boxSupply, this.cannons)
+    const boxPigs = this.spawnBoxPigs(content.boxPigs, solidLayer)
+    this.enemies = [...pigs, ...boxPigs]
     new CombatSystem(this, this.player, this.enemies, boxes)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, runProfile.diamonds)
@@ -126,6 +141,7 @@ export class GameScene extends Phaser.Scene {
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOX, this.throwBox, this)
     this.events.on(ENTITY_EVENT.BOX_BROKEN, this.dropLoot, this)
+    this.events.on(ENTITY_EVENT.BOXPIG_REVEAL, this.revealBoxPig, this)
     this.events.on(ENTITY_EVENT.CANNON_FIRE, this.fireCannonBall, this)
 
     const { widthInPixels, heightInPixels } = map
@@ -310,6 +326,57 @@ export class GameScene extends Phaser.Scene {
     ball.destroy()
     const bomb = new Bomb(this, x, y, 0, 0)
     this.physics.add.collider(bomb, this.solidLayer)
+  }
+
+  // crate-disguised pigs: blend with the loot boxes, hunted as combat targets
+  private spawnBoxPigs(spawns: readonly SpawnTile[], solidLayer: Phaser.Tilemaps.TilemapLayer): BoxPig[] {
+    const floorBody = {
+      width: BOX_PIG_BODY.WIDTH,
+      height: BOX_PIG_BODY.HEIGHT,
+      offsetX: BOX_PIG_BODY.OFFSET_X,
+      offsetY: BOX_PIG_BODY.OFFSET_Y,
+      frameHeight: BOX_PIG_SPRITE.FRAME_HEIGHT,
+    }
+    return spawns.map((spawn) => {
+      const x = spawn.col * TILE_SIZE
+      const y = this.groundedFor(spawn.row * TILE_SIZE, floorBody)
+      const boxPig = new BoxPig(this, x, y)
+      boxPig.setDepth(BOX.DEPTH) // same layer as the loot crates it hides among
+      this.physics.add.collider(boxPig, solidLayer)
+      this.physics.add.overlap(this.player, boxPig, () => this.handleBoxPigTouch(boxPig), undefined, this)
+      return boxPig
+    })
+  }
+
+  // stomp it from above, or take contact damage once it has woken and is hopping
+  private handleBoxPigTouch(boxPig: BoxPig): void {
+    if (!boxPig.isAlive) {
+      return
+    }
+    const playerBody = this.player.body as Phaser.Physics.Arcade.Body
+    const pigBody = boxPig.body as Phaser.Physics.Arcade.Body
+    const fallingOntoHead = playerBody.velocity.y > 0 && playerBody.bottom <= pigBody.top + COMBAT.STOMP_TOLERANCE
+    if (fallingOntoHead) {
+      boxPig.stomp()
+      this.player.bounce()
+      return
+    }
+    if (boxPig.isLunging) {
+      this.player.takeDamage(BOX_PIG.CONTACT_DAMAGE)
+    }
+  }
+
+  // a settled crate burst open: drop a real pig where it broke and track it
+  private revealBoxPig(event: BoxPigRevealEvent): void {
+    const config = PIG_CONFIGS.pig
+    const tier = PIG_TIERS[0]
+    const y = this.groundedFor(event.floorY, config.body)
+    const pig = new Pig(this, event.x, y, BOX_PIG.REVEAL_PATROL_TILES * TILE_SIZE, config, tier)
+    pig.setDepth(ENEMY_DEPTH)
+    pig.setCannons(this.cannons)
+    this.physics.add.collider(pig, this.solidLayer)
+    this.physics.add.overlap(this.player, pig, () => this.tryStomp(pig), undefined, this)
+    this.enemies.push(pig)
   }
 
   private tryStomp(pig: Enemy): void {

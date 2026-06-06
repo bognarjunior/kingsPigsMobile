@@ -241,6 +241,43 @@ export const CANNON = {
   BALL_GRAVITY: 200,
 } as const
 
+export const BOX_PIG_SPRITE = {
+  FRAME_WIDTH: 26,
+  FRAME_HEIGHT: 20,
+} as const
+
+export const BOX_PIG_BODY = {
+  WIDTH: 20,
+  HEIGHT: 16,
+  OFFSET_X: 3,
+  OFFSET_Y: 3,
+} as const
+
+export const BOX_PIG_FRAMES = {
+  LOOK: 3,
+  ANTICIPATION: 2,
+  JUMP: 2,
+} as const
+
+// A pig disguised as a crate: camouflaged among the loot boxes, it peeks (Looking
+// Out) when the King is near, lunges once toward him, settles, then bursts open
+// and releases a real pig. A hit/stomp shatters the crate before it can hatch.
+export const BOX_PIG = {
+  DETECT_RANGE: 140,
+  HOP_SPEED: 90,
+  HOP_VELOCITY_Y: 250,
+  // brief landing-squash frame before it pops back to a whole crate
+  LAND_FRAME_MS: 120,
+  // sit time (as a whole crate again) after landing before it bursts into a pig
+  SETTLE_MS: 1500,
+  CONTACT_DAMAGE: 1,
+  // patrol radius (tiles) of the pig it releases
+  REVEAL_PATROL_TILES: 2,
+  LOOK_FPS: 8,
+  ANTICIPATION_FPS: 10,
+  JUMP_FPS: 8,
+} as const
+
 export const DOOR_FRAMES = {
   OPENING: 5,
   CLOSING: 3,
