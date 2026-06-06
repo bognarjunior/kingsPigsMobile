@@ -122,18 +122,35 @@ Make it a real game loop: fight, collect, lose, retry.
 - [x] Attack-to-enter doors with forward/back navigation (level-1 entry door vanishes)
 - [x] Pig difficulty tiers — palette swap green→white→blue→red→gray, scaling HP/speed/damage; stomp = 2×;
       throwers fall back to melee when out of ammo
-- [ ] **Persistence + anti-farm** — profile (diamonds / lives / upgrades + per-level loot-taken);
-      loot is one-time, enemies reset ([LEVEL_DESIGN](LEVEL_DESIGN.md) §7–§8). Real save wiring rides on Phase 6.
-- [ ] **Lives + death / game-over** flow (hearts→lose a life→restart; 0 lives→game over) (LEVEL_DESIGN §5)
+- [x] Persistence + anti-farm — run profile (diamonds / lives + per-level loot-taken); loot is
+      one-time, enemies reset ([LEVEL_DESIGN](LEVEL_DESIGN.md) §7–§8). In-memory for now; real save = Phase 6.
+- [x] Lives + death / game-over (hearts→lose a life→retry; 0 lives→game over) (LEVEL_DESIGN §5)
+- [x] Cannon hazard — manned by any pig; ballistic ball lands and turns into a bomb
+- [x] Box-pig ambush — crate disguised among loot; lunges once, then hatches into a real pig
+- [ ] **Pig from a door** — triggered appearance (door opens, a pig comes out) → closes the
+      enemy-appearance mix (fixed / box-pig / door) (LEVEL_DESIGN §2)
 - [ ] **Triggered enemy waves** (zone-on-enter) (LEVEL_DESIGN §2)
 - [ ] **Shop scene** — spend diamonds on King upgrades: max health, damage, invuln, extra life (LEVEL_DESIGN §4)
 - [ ] **King Pig boss** — recurring & scaling, locked arena, summons waves (LEVEL_DESIGN §10)
-- [ ] (later) cannon-match pig
+- [ ] (polish) cannon's crouched match-pig sprite; box-pig configurable hatch type/tier
 
 > Full system design / decisions map lives in **[docs/LEVEL_DESIGN.md](LEVEL_DESIGN.md)**.
 
 **Acceptance:** attacking kills the Pig and the Pig can hurt the King; collecting items
 updates the HUD; dying shows game over and restart works. Verified on the iOS Simulator.
+
+---
+
+## Content & polish — cross-cutting (not yet scheduled)
+
+Gaps that aren't tied to a single phase but are needed for a real game:
+
+- [ ] **Audio** — no sound at all yet: SFX (jump, hammer, hurt, box break, bomb/cannon,
+      pig death, door, pickup) + background music. Needs an audio service + asset pass.
+- [ ] **Real level design** — the current levels are **test arrangements**. Author real
+      levels (layout + balanced enemy/box/cannon placement) once the systems are stable.
+- [ ] **Menu / title screen** — `MenuScene` is a stub; needs a real start screen
+      (and later: options, continue).
 
 ---
 
