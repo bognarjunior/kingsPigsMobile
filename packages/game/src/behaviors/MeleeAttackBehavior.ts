@@ -6,14 +6,19 @@ import { ANIM_KEY } from '@/constants/keys'
 import type { AttackBehavior, FireContext } from '@/types/enemy'
 
 export class MeleeAttackBehavior implements AttackBehavior {
-  readonly anim = ANIM_KEY.PIG_ATTACK
-  readonly releaseFrame = PIG.ATTACK_RELEASE_FRAME
+  readonly anim: string
+  readonly releaseFrame: number
   private lastAttackAt = Number.NEGATIVE_INFINITY
 
   constructor(
     readonly range: number,
     private readonly cooldownMs: number,
-  ) {}
+    attackAnim: string = ANIM_KEY.PIG_ATTACK,
+    releaseFrame: number = PIG.ATTACK_RELEASE_FRAME,
+  ) {
+    this.anim = attackAnim
+    this.releaseFrame = releaseFrame
+  }
 
   ready(now: number): boolean {
     return now - this.lastAttackAt >= this.cooldownMs

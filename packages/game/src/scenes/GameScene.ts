@@ -14,6 +14,8 @@ import {
   COLORS,
   COMBAT,
   DOOR,
+  KING_PIG_BODY,
+  KING_PIG_SPRITE,
   KING_BODY,
   KING_SPRITE,
   PIG_TIERS,
@@ -30,6 +32,7 @@ import { Cannon } from '@/entities/Cannon'
 import { CannonBall } from '@/entities/CannonBall'
 import { Door } from '@/entities/Door'
 import type { Enemy } from '@/entities/Enemy'
+import { KingPig } from '@/entities/KingPig'
 import { Pickup } from '@/entities/Pickup'
 import { Pig } from '@/entities/Pig'
 import { PIG_CONFIGS } from '@/entities/pigConfigs'
@@ -52,6 +55,7 @@ import type {
   ThrowBombEvent,
   ThrowBoxEvent,
 } from '@/types/enemy'
+import type { KingPigSpawn, KingPigSummonEvent } from '@/types/kingPig'
 import type { InputState } from '@/types/input'
 import type {
   BoxBrokenEvent,
@@ -63,6 +67,7 @@ import type {
   LevelPhase,
   SpawnTile,
 } from '@/types/level'
+import { BossHealthBar } from '@/ui/BossHealthBar'
 import { DiamondCounter } from '@/ui/DiamondCounter'
 import { GameOverOverlay } from '@/ui/GameOverOverlay'
 import { HealthBar } from '@/ui/HealthBar'
@@ -139,6 +144,11 @@ export class GameScene extends Phaser.Scene {
     const pigs = this.spawnEnemies(content.enemies)
     const boxPigs = this.spawnBoxPigs(content.boxPigs, solidLayer)
     this.enemies = [...pigs, ...boxPigs]
+    const bosses = this.spawnBosses(content.bosses)
+    this.enemies.push(...bosses)
+    if (bosses.length === 1) {
+      new BossHealthBar(this, bosses[0].bossMaxHealth)
+    }
     this.doorSpawners = this.spawnDoorSpawners(content.doorWaves)
     new CombatSystem(this, this.player, this.enemies, boxes)
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
@@ -149,6 +159,7 @@ export class GameScene extends Phaser.Scene {
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOX, this.throwBox, this)
     this.events.on(ENTITY_EVENT.BOX_BROKEN, this.dropLoot, this)
     this.events.on(ENTITY_EVENT.BOXPIG_REVEAL, this.revealBoxPig, this)
+    this.events.on(ENTITY_EVENT.KING_PIG_SUMMON, this.summonBossMinions, this)
     this.events.on(ENTITY_EVENT.CANNON_FIRE, this.fireCannonBall, this)
 
     const { widthInPixels, heightInPixels } = map
@@ -247,6 +258,9 @@ export class GameScene extends Phaser.Scene {
       return null
     }
     if (this.isNearDoor(this.exitDoor)) {
+      if (this.hasLiveBoss()) {
+        return null
+      }
       return 'exit'
     }
     if (this.entryDoor.active && this.isNearDoor(this.entryDoor)) {
@@ -269,17 +283,58 @@ export class GameScene extends Phaser.Scene {
   }
 
   private spawnEnemies(spawns: readonly EnemySpawn[]): Pig[] {
-    return spawns.map((spawn) => {
-      const config = PIG_CONFIGS[spawn.type]
-      const tier = PIG_TIERS[spawn.tier ?? 0] ?? PIG_TIERS[0]
-      const x = spawn.col * TILE_SIZE
-      const y = this.groundedFor(spawn.row * TILE_SIZE, config.body)
-      return this.addPig(config, tier, x, y, spawn.patrol * TILE_SIZE)
+    return spawns.map((spawn) => this.spawnEnemy(spawn))
+  }
+
+  private spawnEnemy(spawn: EnemySpawn): Pig {
+    const config = PIG_CONFIGS[spawn.type]
+    const tier = PIG_TIERS[spawn.tier ?? 0] ?? PIG_TIERS[0]
+    const x = spawn.col * TILE_SIZE
+    const y = this.groundedFor(spawn.row * TILE_SIZE, config.body)
+    return this.addPig(config, tier, x, y, spawn.patrol * TILE_SIZE)
+  }
+
+  private spawnBoss(spawn: KingPigSpawn): KingPig {
+    const body: PigBody = {
+      width: KING_PIG_BODY.WIDTH,
+      height: KING_PIG_BODY.HEIGHT,
+      offsetX: KING_PIG_BODY.OFFSET_X,
+      offsetY: KING_PIG_BODY.OFFSET_Y,
+      frameHeight: KING_PIG_SPRITE.FRAME_HEIGHT,
+    }
+    const x = spawn.col * TILE_SIZE
+    const y = this.groundedFor(spawn.row * TILE_SIZE, body)
+    const boss = new KingPig(
+      this,
+      x,
+      y,
+      spawn.patrol * TILE_SIZE,
+      spawn.tier ?? 0,
+      spawn.summons ?? [],
+      spawn.contactDamage,
+    )
+    boss.setDepth(ENEMY_DEPTH + 1)
+    this.physics.add.collider(boss, this.solidLayer)
+    this.physics.add.overlap(this.player, boss, () => this.tryStomp(boss), undefined, this)
+    return boss
+  }
+
+  private spawnBosses(spawns: readonly KingPigSpawn[]): KingPig[] {
+    return spawns.map((spawn) => this.spawnBoss(spawn))
+  }
+
+  private hasLiveBoss(): boolean {
+    return this.enemies.some((enemy) => enemy instanceof KingPig && enemy.isAlive)
+  }
+
+  private summonBossMinions(event: KingPigSummonEvent): void {
+    event.minions.forEach((spawn) => {
+      this.enemies.push(this.spawnEnemy(spawn))
     })
   }
 
   // create a pig and wire it up (collider, stomp, cannons, ammo). Used by fixed
-  // spawns, door spawners, and box-pig hatches — the caller tracks it in `enemies`.
+  // spawns, door spawners, box-pig hatches, and boss summons.
   private addPig(config: PigConfig, tier: PigTier, x: number, y: number, patrolRange: number): Pig {
     const ammoGroups: Record<AmmoKind, Phaser.Physics.Arcade.Group> = { bomb: this.bombSupply, box: this.boxSupply }
     const pig = new Pig(this, x, y, patrolRange, config, tier)
@@ -390,7 +445,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   // crate-disguised pigs: blend with the loot boxes, hunted as combat targets
-  private spawnBoxPigs(spawns: readonly SpawnTile[], solidLayer: Phaser.Tilemaps.TilemapLayer): BoxPig[] {
+  private spawnBoxPigs(spawns: readonly EnemySpawn[], solidLayer: Phaser.Tilemaps.TilemapLayer): BoxPig[] {
     const floorBody = {
       width: BOX_PIG_BODY.WIDTH,
       height: BOX_PIG_BODY.HEIGHT,
@@ -401,7 +456,7 @@ export class GameScene extends Phaser.Scene {
     return spawns.map((spawn) => {
       const x = spawn.col * TILE_SIZE
       const y = this.groundedFor(spawn.row * TILE_SIZE, floorBody)
-      const boxPig = new BoxPig(this, x, y)
+      const boxPig = new BoxPig(this, x, y, spawn)
       boxPig.setDepth(BOX.DEPTH) // same layer as the loot crates it hides among
       this.physics.add.collider(boxPig, solidLayer)
       this.physics.add.overlap(this.player, boxPig, () => this.handleBoxPigTouch(boxPig), undefined, this)
@@ -427,12 +482,18 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  // a settled crate burst open: drop a real pig where it broke and track it
+  // a settled crate burst open: swap the ambush crate for one real pig at the same slot
   private revealBoxPig(event: BoxPigRevealEvent): void {
-    const config = PIG_CONFIGS.pig
+    const config = PIG_CONFIGS[event.type]
+    const tier = PIG_TIERS[event.tier ?? 0] ?? PIG_TIERS[0]
     const y = this.groundedFor(event.floorY, config.body)
-    const pig = this.addPig(config, PIG_TIERS[0], event.x, y, BOX_PIG.REVEAL_PATROL_TILES * TILE_SIZE)
-    this.enemies.push(pig)
+    const pig = this.addPig(config, tier, event.x, y, event.patrol * TILE_SIZE)
+    const index = this.enemies.indexOf(event.source)
+    if (index >= 0) {
+      this.enemies[index] = pig
+    } else {
+      this.enemies.push(pig)
+    }
   }
 
   private tryStomp(pig: Enemy): void {
@@ -622,6 +683,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleShutdown(): void {
+    this.events.off(ENTITY_EVENT.KING_PIG_SUMMON, this.summonBossMinions, this)
     this.virtualControls.destroy()
   }
 }

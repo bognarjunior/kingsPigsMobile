@@ -5,6 +5,7 @@ import { ENTITY_EVENT } from '@/constants/events'
 import type { BreakableBox } from '@/entities/BreakableBox'
 import type { Enemy } from '@/entities/Enemy'
 import type { Player } from '@/entities/Player'
+import { runProfile } from '@/services/runProfile'
 import type { AttackEvent, BombExplodeEvent } from '@/types/enemy'
 
 export class CombatSystem {
@@ -29,9 +30,10 @@ export class CombatSystem {
 
   private onPlayerAttack(event: AttackEvent): void {
     const knockbackDir = event.facingLeft ? -1 : 1
+    const damage = PLAYER.ATTACK_DAMAGE + runProfile.damageBonus
     this.enemies.forEach((enemy) => {
       if (enemy.isAlive && this.inReach(event, enemy.x, enemy.y, PLAYER.ATTACK_RANGE)) {
-        enemy.takeDamage(PLAYER.ATTACK_DAMAGE, knockbackDir)
+        enemy.takeDamage(damage, knockbackDir)
       }
     })
     this.boxes.forEach((box) => {

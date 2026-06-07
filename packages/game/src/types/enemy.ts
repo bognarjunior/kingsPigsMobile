@@ -1,5 +1,6 @@
 import type Phaser from 'phaser'
 
+import type { Enemy } from '@/entities/Enemy'
 import type { Loot } from '@/types/level'
 
 export type EnemyState = 'idle' | 'run' | 'attack' | 'hurt' | 'dead'
@@ -77,9 +78,16 @@ export interface CannonFireEvent {
   readonly directionX: number
 }
 
-export interface BoxPigRevealEvent {
+export interface BoxPigHatch {
+  readonly type: PigType
+  readonly tier?: number
+  readonly patrol: number
+}
+
+export interface BoxPigRevealEvent extends BoxPigHatch {
   readonly x: number
   readonly floorY: number
+  readonly source: Enemy
 }
 
 export interface BombExplodeEvent {

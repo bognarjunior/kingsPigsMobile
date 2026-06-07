@@ -1,4 +1,5 @@
 import type { EnemySpawn } from '@/types/enemy'
+import type { KingPigSpawn } from '@/types/kingPig'
 
 export type LevelPhase = 'intro' | 'play' | 'outro'
 
@@ -99,9 +100,11 @@ export interface LevelContent {
   readonly bombSupply: readonly SpawnTile[]
   readonly cannons: readonly CannonPlacement[]
   // crate-disguised pigs, placed among the loot boxes for camouflage
-  readonly boxPigs: readonly SpawnTile[]
+  readonly boxPigs: readonly EnemySpawn[]
   // triggered waves: a door materialises near the King, releases `count` pigs, vanishes
   readonly doorWaves: readonly DoorWave[]
+  // king pigs (bosses); optional per spawn
+  readonly bosses: readonly KingPigSpawn[]
 }
 
 export interface DoorWave extends EnemySpawn {

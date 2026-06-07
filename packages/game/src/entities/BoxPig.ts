@@ -5,6 +5,7 @@ import { ENTITY_EVENT } from '@/constants/events'
 import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
 import { BoxDebris } from '@/entities/BoxDebris'
 import { Enemy } from '@/entities/Enemy'
+import type { BoxPigHatch } from '@/types/enemy'
 
 const completeEvent = (animKey: string): string =>
   `${Phaser.Animations.Events.ANIMATION_COMPLETE_KEY}${animKey}`
@@ -19,8 +20,9 @@ type Phase = 'hidden' | 'peek' | 'wind' | 'air' | 'settle'
 export class BoxPig extends Enemy {
   private phase: Phase = 'hidden'
   private dead = false
+  private hatched = false
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, private readonly hatchConfig: BoxPigHatch) {
     super(scene, x, y, TEXTURE_KEY.BOX_PIG_LOOK)
     this.setFrame(0) // closed crate — indistinguishable from a loot box
 
@@ -109,16 +111,24 @@ export class BoxPig extends Enemy {
         this.setTexture(TEXTURE_KEY.BOX_PIG_LOOK, 0)
       }
     })
-    this.scene.time.delayedCall(BOX_PIG.SETTLE_MS, () => this.hatch())
+    this.scene.time.delayedCall(BOX_PIG.SETTLE_MS, () => this.releasePig())
   }
 
   // survived the settle: burst open and hand a real pig to the scene
-  private hatch(): void {
-    if (this.dead) {
+  private releasePig(): void {
+    if (this.dead || this.hatched) {
       return
     }
+    this.hatched = true
     const floorY = (this.body as Phaser.Physics.Arcade.Body).bottom
-    this.scene.events.emit(ENTITY_EVENT.BOXPIG_REVEAL, { x: this.x, floorY })
+    this.scene.events.emit(ENTITY_EVENT.BOXPIG_REVEAL, {
+      x: this.x,
+      floorY,
+      type: this.hatchConfig.type,
+      tier: this.hatchConfig.tier ?? 0,
+      patrol: this.hatchConfig.patrol,
+      source: this,
+    })
     this.shatter()
   }
 

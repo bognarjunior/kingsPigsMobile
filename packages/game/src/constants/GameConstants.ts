@@ -28,6 +28,11 @@ export const PIG_SPRITE = {
   FRAME_HEIGHT: 28,
 } as const
 
+export const KING_PIG_SPRITE = {
+  FRAME_WIDTH: 38,
+  FRAME_HEIGHT: 28,
+} as const
+
 export const DOOR_SPRITE = {
   FRAME_WIDTH: 46,
   FRAME_HEIGHT: 56,
@@ -64,6 +69,13 @@ export const PIG_BODY = {
   OFFSET_Y: 11,
 } as const
 
+export const KING_PIG_BODY = {
+  WIDTH: 20,
+  HEIGHT: 18,
+  OFFSET_X: 13,
+  OFFSET_Y: 10,
+} as const
+
 export const KING_FRAMES = {
   IDLE: 11,
   RUN: 8,
@@ -78,6 +90,14 @@ export const KING_FRAMES = {
 
 export const PIG_FRAMES = {
   IDLE: 11,
+  RUN: 6,
+  ATTACK: 5,
+  HIT: 2,
+  DEAD: 4,
+} as const
+
+export const KING_PIG_FRAMES = {
+  IDLE: 12,
   RUN: 6,
   ATTACK: 5,
   HIT: 2,
@@ -328,6 +348,24 @@ export const CAMERA = {
   LERP: 0.12,
 } as const
 
+export const KING_PIG = {
+  PATROL_SPEED: 50,
+  CHASE_SPEED: 95,
+  DETECTION_RANGE: 220,
+  VISION_HEIGHT: 52,
+  ATTACK_RANGE: 36,
+  ATTACK_VERTICAL: 14,
+  ATTACK_COOLDOWN_MS: 1400,
+  ATTACK_RELEASE_FRAME: 2,
+  KNOCKBACK_SPEED: 120,
+  KNOCKBACK_DRAG: 900,
+  STOMP_DAMAGE: 50,
+  STUN_MS: 800,
+  DEAD_LINGER_MS: 800,
+  // boss HP = tier base health × this multiplier (green tier → 200 HP)
+  HEALTH_MULTIPLIER: 4,
+} as const
+
 export const PIG = {
   PATROL_SPEED: 60,
   CHASE_SPEED: 110,
@@ -439,6 +477,28 @@ export const MENU = {
 export const PICKUP = {
   FLOAT_ABOVE_FLOOR: 16,
   DEPTH: 8,
+} as const
+
+// the shop (opened any time via a button): prices in diamonds + upgrade steps.
+// Numbers are placeholders, easy to rebalance.
+export const SHOP = {
+  PRICE_MAX_HEART: 8,
+  PRICE_DAMAGE: 6,
+  PRICE_LIFE: 10,
+  PRICE_INVULN: 5,
+  DAMAGE_STEP: 10,
+  INVULN_MS: 8000,
+} as const
+
+export const BOSS_HUD = {
+  BAR_X: 140,
+  BAR_Y: 28,
+  BAR_WIDTH: 200,
+  BAR_HEIGHT: 8,
+  FILL_COLOR: 0xe74c3c,
+  BACK_COLOR: 0x2c2137,
+  BORDER_COLOR: 0xffffff,
+  DEPTH: 101,
 } as const
 
 export const HUD = {

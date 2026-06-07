@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 
 import { PIG_SHEETS } from '@/animations/pigSheets'
+import { KING_PIG_SHEETS } from '@/animations/kingPigSheets'
 import {
   ANIM,
   BOMB,
@@ -45,6 +46,13 @@ export function registerAnimations(scene: Phaser.Scene): void {
 
   // every pig sheet, once per difficulty tier (green base + recoloured variants)
   PIG_SHEETS.forEach((sheet) => {
+    PIG_TIERS.forEach((tier) => {
+      const suffix = tier.name ? `-${tier.name}` : ''
+      create(sheet.anim + suffix, sheet.texture + suffix, sheet.frames, sheet.fps, sheet.loop)
+    })
+  })
+
+  KING_PIG_SHEETS.forEach((sheet) => {
     PIG_TIERS.forEach((tier) => {
       const suffix = tier.name ? `-${tier.name}` : ''
       create(sheet.anim + suffix, sheet.texture + suffix, sheet.frames, sheet.fps, sheet.loop)

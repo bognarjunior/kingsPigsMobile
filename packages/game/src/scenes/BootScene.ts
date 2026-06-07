@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 
 import { registerAnimations } from '@/animations/registerAnimations'
 import { PIG_SHEETS } from '@/animations/pigSheets'
+import { KING_PIG_SHEETS } from '@/animations/kingPigSheets'
 import { PIG_TIERS } from '@/constants/GameConstants'
 import { recolorSpriteSheet } from '@/systems/recolorTexture'
 import {
@@ -13,6 +14,7 @@ import {
   FONT_FAMILY,
   MATCH_SPRITE,
   HEART_SPRITE,
+  KING_PIG_SPRITE,
   KING_SPRITE,
   NUMBER_SPRITE,
   PIG_BOMB_SPRITE,
@@ -35,6 +37,11 @@ import pigRunUrl from '@/assets/pig/run.png'
 import pigAttackUrl from '@/assets/pig/attack.png'
 import pigHitUrl from '@/assets/pig/hit.png'
 import pigDeadUrl from '@/assets/pig/dead.png'
+import kingPigIdleUrl from '@/assets/king-pig/idle.png'
+import kingPigRunUrl from '@/assets/king-pig/run.png'
+import kingPigAttackUrl from '@/assets/king-pig/attack.png'
+import kingPigHitUrl from '@/assets/king-pig/hit.png'
+import kingPigDeadUrl from '@/assets/king-pig/dead.png'
 import pigBombIdleUrl from '@/assets/pig-bomb/idle.png'
 import pigBombRunUrl from '@/assets/pig-bomb/run.png'
 import pigBombThrowUrl from '@/assets/pig-bomb/throw.png'
@@ -107,6 +114,13 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet(TEXTURE_KEY.PIG_ATTACK, pigAttackUrl, pig)
     this.load.spritesheet(TEXTURE_KEY.PIG_HIT, pigHitUrl, pig)
     this.load.spritesheet(TEXTURE_KEY.PIG_DEAD, pigDeadUrl, pig)
+
+    const kingPig = { frameWidth: KING_PIG_SPRITE.FRAME_WIDTH, frameHeight: KING_PIG_SPRITE.FRAME_HEIGHT }
+    this.load.spritesheet(TEXTURE_KEY.KING_PIG_IDLE, kingPigIdleUrl, kingPig)
+    this.load.spritesheet(TEXTURE_KEY.KING_PIG_RUN, kingPigRunUrl, kingPig)
+    this.load.spritesheet(TEXTURE_KEY.KING_PIG_ATTACK, kingPigAttackUrl, kingPig)
+    this.load.spritesheet(TEXTURE_KEY.KING_PIG_HIT, kingPigHitUrl, kingPig)
+    this.load.spritesheet(TEXTURE_KEY.KING_PIG_DEAD, kingPigDeadUrl, kingPig)
 
     const pigBomb = { frameWidth: PIG_BOMB_SPRITE.FRAME_WIDTH, frameHeight: PIG_BOMB_SPRITE.FRAME_HEIGHT }
     this.load.spritesheet(TEXTURE_KEY.PIG_BOMB_IDLE, pigBombIdleUrl, pigBomb)
@@ -201,6 +215,9 @@ export class BootScene extends Phaser.Scene {
         return // green is the source art
       }
       PIG_SHEETS.forEach((sheet) => {
+        recolorSpriteSheet(this, sheet.texture, `${sheet.texture}-${tier.name}`, sheet.width, sheet.height, tier.skin!)
+      })
+      KING_PIG_SHEETS.forEach((sheet) => {
         recolorSpriteSheet(this, sheet.texture, `${sheet.texture}-${tier.name}`, sheet.width, sheet.height, tier.skin!)
       })
     })

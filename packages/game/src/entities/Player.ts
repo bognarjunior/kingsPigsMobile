@@ -19,8 +19,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private isHurt = false
   private isDead = false
   private inCutscene = false
-  private hearts: number = PLAYER.MAX_HEARTS
-  private maxHeartsCount: number = PLAYER.MAX_HEARTS
+  private maxHeartsCount: number = Math.min(
+    PLAYER.MAX_HEARTS_CAP,
+    PLAYER.MAX_HEARTS + runProfile.maxHeartBonusValue,
+  )
+  private hearts: number = this.maxHeartsCount
   private invulnerableUntil = 0
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -76,6 +79,34 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.events.emit(ENTITY_EVENT.PLAYER_HEALTH, this.hearts)
   }
 
+  // shop "+1 max heart": grow the cap and fill the new heart
+  raiseMaxHearts(): void {
+    if (this.maxHeartsCount >= PLAYER.MAX_HEARTS_CAP) {
+      return
+    }
+    this.maxHeartsCount += 1
+    this.hearts += 1
+    this.scene.events.emit(ENTITY_EVENT.PLAYER_MAX_HEARTS, this.maxHeartsCount)
+    this.scene.events.emit(ENTITY_EVENT.PLAYER_HEALTH, this.hearts)
+  }
+
+  get maxedHearts(): boolean {
+    return this.maxHeartsCount >= PLAYER.MAX_HEARTS_CAP
+  }
+
+  // shop "invulnerability": a timed shield (reuses the hurt i-frame window) + blink
+  grantInvulnerability(ms: number): void {
+    this.invulnerableUntil = this.scene.time.now + ms
+    this.scene.tweens.add({
+      targets: this,
+      alpha: 0.4,
+      duration: 160,
+      yoyo: true,
+      repeat: Math.floor(ms / 320),
+      onComplete: () => this.setAlpha(1),
+    })
+  }
+
   beginCutscene(): void {
     this.inCutscene = true
     this.setVelocity(0, 0)
@@ -104,7 +135,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   takeDamage(amount: number): void {
-    if (this.isDead || this.inCutscene || this.scene.time.now < this.invulnerableUntil) {
+    if (
+      this.isDead ||
+      this.inCutscene ||
+      this.isAttacking ||
+      this.scene.time.now < this.invulnerableUntil
+    ) {
       return
     }
 
