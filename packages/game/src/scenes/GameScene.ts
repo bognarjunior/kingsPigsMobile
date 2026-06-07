@@ -14,12 +14,15 @@ import {
   COLORS,
   COMBAT,
   DOOR,
+  FONT_FAMILY,
+  HUD,
   KING_PIG_BODY,
   KING_PIG_SPRITE,
   KING_BODY,
   KING_SPRITE,
   PIG_TIERS,
   PLAYER,
+  SHOP,
 } from '@/constants/GameConstants'
 import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
 import { ANIM_KEY, LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
@@ -72,6 +75,7 @@ import { DiamondCounter } from '@/ui/DiamondCounter'
 import { GameOverOverlay } from '@/ui/GameOverOverlay'
 import { HealthBar } from '@/ui/HealthBar'
 import { LivesCounter } from '@/ui/LivesCounter'
+import { ShopOverlay, type ShopItem } from '@/ui/ShopOverlay'
 import { VirtualControls } from '@/ui/VirtualControls'
 import { sendToApp } from '@/utils/bridge'
 
@@ -96,6 +100,8 @@ export class GameScene extends Phaser.Scene {
   private entrance: LevelEntrance = 'entry'
   private introDoor!: Door
   private prevAttack = false
+  private shopOpen = false
+  private shopOverlay?: ShopOverlay
 
   constructor() {
     super(SCENE_KEY.GAME)
@@ -154,6 +160,7 @@ export class GameScene extends Phaser.Scene {
     new HealthBar(this, this.player.maxHearts, this.player.currentHearts)
     new DiamondCounter(this, runProfile.diamonds)
     new LivesCounter(this, runProfile.lives)
+    this.createShopButton()
     this.events.once(ENTITY_EVENT.PLAYER_DIED, this.handlePlayerDied, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOX, this.throwBox, this)
@@ -176,6 +183,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(): void {
+    if (this.shopOpen) {
+      return // shop is a hard pause: nothing in the level updates
+    }
+
     const input = this.inputSystem.getState()
     this.player.update(this.resolveDoorInteraction(input))
 
@@ -680,6 +691,85 @@ export class GameScene extends Phaser.Scene {
       runProfile.resetRun()
       this.scene.restart({ levelKey: TILEMAP_KEY.LEVEL1, entrance: 'entry' })
     })
+  }
+
+  // a HUD button (top-centre) opens the shop at any time during play
+  private createShopButton(): void {
+    const cx = this.cameras.main.width / 2
+    const button = this.add
+      .rectangle(cx, 12, 52, 18, 0x000000, 0.45)
+      .setScrollFactor(0)
+      .setDepth(HUD.DEPTH)
+      .setStrokeStyle(1, 0xffffff, 0.6)
+      .setInteractive({ useHandCursor: true })
+    this.add
+      .text(cx, 12, 'SHOP', { fontFamily: FONT_FAMILY, fontSize: '8px', color: '#ffffff' })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(HUD.DEPTH + 1)
+    button.on(Phaser.Input.Events.POINTER_DOWN, () => this.openShop())
+  }
+
+  // the shop is a hard pause: freeze physics, show the overlay
+  private openShop(): void {
+    if (this.shopOpen || this.phase !== 'play') {
+      return
+    }
+    this.shopOpen = true
+    this.physics.pause()
+    ;(this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0)
+    const items: ShopItem[] = [
+      { label: '+1 MAX HEART', price: SHOP.PRICE_MAX_HEART, available: () => !this.player.maxedHearts, purchase: () => this.buyMaxHeart() },
+      { label: '+DAMAGE', price: SHOP.PRICE_DAMAGE, available: () => true, purchase: () => this.buyDamage() },
+      { label: '+1 LIFE', price: SHOP.PRICE_LIFE, available: () => true, purchase: () => this.buyLife() },
+      { label: 'SHIELD', price: SHOP.PRICE_INVULN, available: () => true, purchase: () => this.buyInvuln() },
+    ]
+    this.shopOverlay = new ShopOverlay(this, items, () => this.closeShop())
+  }
+
+  private closeShop(): void {
+    if (!this.shopOpen) {
+      return
+    }
+    this.shopOpen = false
+    this.physics.resume()
+    this.shopOverlay?.destroy()
+    this.shopOverlay = undefined
+  }
+
+  private buyMaxHeart(): void {
+    if (!runProfile.spend(SHOP.PRICE_MAX_HEART)) {
+      return
+    }
+    runProfile.raiseMaxHeartBonus()
+    this.player.raiseMaxHearts()
+    this.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, runProfile.diamonds)
+  }
+
+  private buyDamage(): void {
+    if (!runProfile.spend(SHOP.PRICE_DAMAGE)) {
+      return
+    }
+    runProfile.raiseDamageBonus(SHOP.DAMAGE_STEP)
+    this.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, runProfile.diamonds)
+  }
+
+  private buyLife(): void {
+    if (!runProfile.spend(SHOP.PRICE_LIFE)) {
+      return
+    }
+    runProfile.addLife()
+    this.events.emit(ENTITY_EVENT.PLAYER_LIVES, runProfile.lives)
+    this.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, runProfile.diamonds)
+  }
+
+  private buyInvuln(): void {
+    if (!runProfile.spend(SHOP.PRICE_INVULN)) {
+      return
+    }
+    this.player.grantInvulnerability(SHOP.INVULN_MS)
+    this.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, runProfile.diamonds)
+    this.closeShop() // close so the shield is spent in play, not in the menu
   }
 
   private handleShutdown(): void {
