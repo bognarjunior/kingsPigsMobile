@@ -1,7 +1,8 @@
 import Phaser from 'phaser'
 
 import { FONT_FAMILY } from '@/constants/GameConstants'
-import { TEXTURE_KEY } from '@/constants/keys'
+import { SOUND_KEY, TEXTURE_KEY } from '@/constants/keys'
+import { playSfx } from '@/services/audio'
 import { runProfile } from '@/services/runProfile'
 
 const DEPTH = 200
@@ -86,6 +87,7 @@ export class ShopOverlay {
       return
     }
     item.purchase()
+    playSfx(SOUND_KEY.BUY)
     this.refresh()
   }
 

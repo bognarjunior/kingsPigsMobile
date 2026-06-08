@@ -1,12 +1,74 @@
-import { StyleSheet, View } from 'react-native'
+import { Asset } from 'expo-asset'
+import { Directory, File, Paths } from 'expo-file-system'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 
+import { gameAudio } from '@/assets/game/gameAudio'
 import { gameHtml } from '@/assets/game/gameHtml'
 import { handleGameMessage } from '@/bridge/GameBridge'
 
+// Write the built game to disk and serve it over file:// so the WebView can load
+// the music as separate sibling files (kept out of the inlined HTML to keep the
+// JS bundle small). Sprites/SFX stay inlined in the HTML.
+async function prepareGame(): Promise<string> {
+  const dir = new Directory(Paths.cache, 'game')
+  if (!dir.exists) {
+    dir.create()
+  }
+  const audioDir = new Directory(dir, 'audio')
+  if (!audioDir.exists) {
+    audioDir.create()
+  }
+
+  const index = new File(dir, 'index.html')
+  if (index.exists) {
+    index.delete()
+  }
+  index.write(gameHtml)
+
+  for (const [name, mod] of Object.entries(gameAudio)) {
+    const dest = new File(audioDir, name)
+    if (dest.exists) {
+      continue // bundled music already copied (cache persists between launches)
+    }
+    const asset = Asset.fromModule(mod)
+    await asset.downloadAsync()
+    if (asset.localUri) {
+      new File(asset.localUri).copySync(dest)
+    }
+  }
+
+  return index.uri
+}
+
 export function GameScreen() {
+  const [indexUri, setIndexUri] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    prepareGame()
+      .then((uri) => {
+        if (active) {
+          setIndexUri(uri)
+        }
+      })
+      .catch((error) => console.error('[game] failed to prepare files', error))
+    return () => {
+      active = false
+    }
+  }, [])
+
   function onMessage(event: WebViewMessageEvent) {
     handleGameMessage(event.nativeEvent.data)
+  }
+
+  if (!indexUri) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color="#ffffff" />
+      </View>
+    )
   }
 
   return (
@@ -14,7 +76,11 @@ export function GameScreen() {
       <WebView
         style={styles.webview}
         originWhitelist={['*']}
-        source={{ html: gameHtml }}
+        source={{ uri: indexUri }}
+        allowFileAccess
+        allowFileAccessFromFileURLs
+        allowUniversalAccessFromFileURLs
+        allowingReadAccessToURL={Paths.cache.uri}
         javaScriptEnabled
         domStorageEnabled
         allowsInlineMediaPlayback
@@ -31,6 +97,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  loading: {
+    flex: 1,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   webview: {
     flex: 1,

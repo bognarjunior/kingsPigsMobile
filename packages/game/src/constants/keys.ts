@@ -4,6 +4,20 @@ export const SCENE_KEY = {
   GAME: 'game',
 } as const
 
+export const SOUND_KEY = {
+  JUMP: 'sfx-jump',
+  ATTACK: 'sfx-attack',
+  HURT: 'sfx-hurt',
+  ENEMY_DIE: 'sfx-enemy-die',
+  BOX_BREAK: 'sfx-box-break',
+  EXPLOSION: 'sfx-explosion',
+  PICKUP: 'sfx-pickup',
+  BUY: 'sfx-buy',
+  MUSIC_ORIGINAL: 'music-original',
+  MUSIC_EPIC: 'music-epic',
+  MUSIC_METAL: 'music-metal',
+} as const
+
 export const TEXTURE_KEY = {
   KING_IDLE: 'king-idle',
   KING_RUN: 'king-run',

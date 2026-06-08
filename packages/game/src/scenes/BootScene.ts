@@ -21,7 +21,7 @@ import {
   PIG_BOX_SPRITE,
   PIG_SPRITE,
 } from '@/constants/GameConstants'
-import { SCENE_KEY, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
+import { SCENE_KEY, SOUND_KEY, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 
 import kingIdleUrl from '@/assets/king/idle.png'
 import kingRunUrl from '@/assets/king/run.png'
@@ -81,6 +81,14 @@ import kingHeadUrl from '@/assets/hud/king-head.png'
 import bigHeartUrl from '@/assets/pickups/heart.png'
 import bigDiamondUrl from '@/assets/pickups/diamond.png'
 import pressStart2pUrl from '@/assets/fonts/PressStart2P.ttf'
+import jumpSfx from '@/assets/audio/jump.wav'
+import attackSfx from '@/assets/audio/attack.wav'
+import hurtSfx from '@/assets/audio/hurt.wav'
+import enemyDieSfx from '@/assets/audio/enemy-die.wav'
+import boxBreakSfx from '@/assets/audio/box-break.wav'
+import explosionSfx from '@/assets/audio/explosion.wav'
+import pickupSfx from '@/assets/audio/pickup.wav'
+import buySfx from '@/assets/audio/buy.wav'
 import level1 from '@/assets/levels/level1.json'
 
 export class BootScene extends Phaser.Scene {
@@ -187,6 +195,22 @@ export class BootScene extends Phaser.Scene {
       frameHeight: NUMBER_SPRITE.FRAME_HEIGHT,
     })
     this.load.image(TEXTURE_KEY.KING_HEAD, kingHeadUrl)
+
+    this.load.audio(SOUND_KEY.JUMP, jumpSfx)
+    this.load.audio(SOUND_KEY.ATTACK, attackSfx)
+    this.load.audio(SOUND_KEY.HURT, hurtSfx)
+    this.load.audio(SOUND_KEY.ENEMY_DIE, enemyDieSfx)
+    this.load.audio(SOUND_KEY.BOX_BREAK, boxBreakSfx)
+    this.load.audio(SOUND_KEY.EXPLOSION, explosionSfx)
+    this.load.audio(SOUND_KEY.PICKUP, pickupSfx)
+    this.load.audio(SOUND_KEY.BUY, buySfx)
+    // music is NOT inlined — it lives next to index.html (in public/audio) and is
+    // served as separate files; the app writes the build to disk and loads it via
+    // a file:// URL so these relative paths resolve. (see GameScreen / ARCHITECTURE)
+    this.load.audio(SOUND_KEY.MUSIC_ORIGINAL, 'audio/music.mp3')
+    this.load.audio(SOUND_KEY.MUSIC_EPIC, 'audio/music-epic.mp3')
+    this.load.audio(SOUND_KEY.MUSIC_METAL, 'audio/music-metal.mp3')
+
     this.load.tilemapTiledJSON(TILEMAP_KEY.LEVEL1, level1)
   }
 

@@ -25,7 +25,7 @@ import {
   SHOP,
 } from '@/constants/GameConstants'
 import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
-import { ANIM_KEY, LAYER, OBJECT_LAYER, SCENE_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
+import { ANIM_KEY, LAYER, OBJECT_LAYER, SCENE_KEY, SOUND_KEY, SPAWN, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
 import { TILE_SIZE, TILESET } from '@/constants/tiles'
 import { Bomb } from '@/entities/Bomb'
 import { BombItem } from '@/entities/BombItem'
@@ -42,6 +42,7 @@ import { PIG_CONFIGS } from '@/entities/pigConfigs'
 import { Player } from '@/entities/Player'
 import { ThrownBox } from '@/entities/ThrownBox'
 import { LEVEL_DEFINITIONS, levelContent, nextLevelKey, previousLevelKey } from '@/levels'
+import { initAudio, playSfx } from '@/services/audio'
 import { runProfile } from '@/services/runProfile'
 import { CameraSystem } from '@/systems/CameraSystem'
 import { CombatSystem } from '@/systems/CombatSystem'
@@ -115,6 +116,7 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.phase = 'intro'
     this.cameras.main.setBackgroundColor(COLORS.BACKGROUND)
+    initAudio(this) // start/keep the music; first menu tap already unlocked audio
 
     const definition = LEVEL_DEFINITIONS[this.levelKey]
     if (definition) {
@@ -564,6 +566,7 @@ export class GameScene extends Phaser.Scene {
       return
     }
     onCollect()
+    playSfx(SOUND_KEY.PICKUP)
     pickup.collect()
   }
 

@@ -2,8 +2,9 @@ import Phaser from 'phaser'
 
 import { BOX, BOX_BODY } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
-import { TEXTURE_KEY } from '@/constants/keys'
+import { SOUND_KEY, TEXTURE_KEY } from '@/constants/keys'
 import { BoxDebris } from '@/entities/BoxDebris'
+import { playSfx } from '@/services/audio'
 import type { Loot } from '@/types/level'
 
 // A crate resting on the ground. The King's hammer (or a thrown crate, later)
@@ -49,6 +50,7 @@ export class BreakableBox extends Phaser.Physics.Arcade.Sprite {
     this.broken = true
 
     BoxDebris.burst(this.scene, this.x, this.y)
+    playSfx(SOUND_KEY.BOX_BREAK)
     this.scene.events.emit(ENTITY_EVENT.BOX_BROKEN, { x: this.x, y: this.y, loot: this.loot, id: this.id })
     this.destroy()
   }

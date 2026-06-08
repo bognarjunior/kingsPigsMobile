@@ -3,7 +3,8 @@ import Phaser from 'phaser'
 import { StateMachine } from '@/behaviors/StateMachine'
 import { KING_BODY, PLAYER } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
-import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
+import { ANIM_KEY, SOUND_KEY, TEXTURE_KEY } from '@/constants/keys'
+import { playSfx } from '@/services/audio'
 import { runProfile } from '@/services/runProfile'
 import type { InputState } from '@/types/input'
 import type { PlayerState } from '@/types/player'
@@ -151,6 +152,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.hearts = Math.max(0, this.hearts - amount)
     this.scene.events.emit(ENTITY_EVENT.PLAYER_HEALTH, this.hearts)
+    playSfx(SOUND_KEY.HURT)
     if (this.hearts === 0) {
       this.die()
       return
@@ -202,6 +204,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (input.jump && body.blocked.down) {
       this.setVelocityY(PLAYER.JUMP_VELOCITY)
+      playSfx(SOUND_KEY.JUMP)
     }
 
     if (input.attack && !this.isAttacking && body.blocked.down) {
@@ -234,6 +237,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private enterAttack(): void {
     this.isAttacking = true
     this.play(ANIM_KEY.KING_ATTACK, true)
+    playSfx(SOUND_KEY.ATTACK)
     this.scene.events.emit(ENTITY_EVENT.PLAYER_ATTACK, {
       x: this.x,
       y: this.y,

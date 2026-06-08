@@ -2,9 +2,10 @@ import Phaser from 'phaser'
 
 import { BOX_PIG, BOX_PIG_BODY } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
-import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
+import { ANIM_KEY, SOUND_KEY, TEXTURE_KEY } from '@/constants/keys'
 import { BoxDebris } from '@/entities/BoxDebris'
 import { Enemy } from '@/entities/Enemy'
+import { playSfx } from '@/services/audio'
 import type { BoxPigHatch } from '@/types/enemy'
 
 const completeEvent = (animKey: string): string =>
@@ -142,6 +143,7 @@ export class BoxPig extends Enemy {
     body.stop()
     body.enable = false
     BoxDebris.burst(this.scene, this.x, this.y)
+    playSfx(SOUND_KEY.BOX_BREAK)
     this.destroy()
   }
 }

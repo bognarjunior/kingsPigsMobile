@@ -2,7 +2,8 @@ import Phaser from 'phaser'
 
 import { BOMB, BOMB_BODY } from '@/constants/GameConstants'
 import { ENTITY_EVENT } from '@/constants/events'
-import { ANIM_KEY, TEXTURE_KEY } from '@/constants/keys'
+import { ANIM_KEY, SOUND_KEY, TEXTURE_KEY } from '@/constants/keys'
+import { playSfx } from '@/services/audio'
 
 const completeEvent = (animKey: string): string =>
   `${Phaser.Animations.Events.ANIMATION_COMPLETE_KEY}${animKey}`
@@ -52,6 +53,7 @@ export class Bomb extends Phaser.Physics.Arcade.Sprite {
     body.enable = false
 
     this.scene.events.emit(ENTITY_EVENT.BOMB_EXPLODE, { x: this.x, y: this.y })
+    playSfx(SOUND_KEY.EXPLOSION)
     this.play(ANIM_KEY.BOMB_BOOM, true)
     this.once(completeEvent(ANIM_KEY.BOMB_BOOM), () => this.destroy())
   }

@@ -9,6 +9,8 @@ packages/game/dist/
 
 # Generated game bundle (produced by `pnpm --filter game build`)
 packages/app/src/assets/game/gameHtml.ts
+packages/app/src/assets/game/gameAudio.ts
+packages/app/src/assets/game/audio/
 
 # Expo / React Native
 .expo/

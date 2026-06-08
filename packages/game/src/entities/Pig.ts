@@ -3,8 +3,10 @@ import Phaser from 'phaser'
 import { PatrolBehavior } from '@/behaviors/PatrolBehavior'
 import { StateMachine } from '@/behaviors/StateMachine'
 import { BOMB, CANNON, PIG } from '@/constants/GameConstants'
+import { SOUND_KEY } from '@/constants/keys'
 import type { Cannon } from '@/entities/Cannon'
 import { Enemy } from '@/entities/Enemy'
+import { playSfx } from '@/services/audio'
 import type { AmmoKind, ArmedSet, AttackBehavior, EnemyState, PigAnims, PigBody, PigConfig, PigTier } from '@/types/enemy'
 import type { Loot } from '@/types/level'
 
@@ -426,6 +428,7 @@ export class Pig extends Enemy {
     body.enable = false
     this.stateMachine.setState('dead')
     this.play(this.tierAnim(this.animKeys.dead), true)
+    playSfx(SOUND_KEY.ENEMY_DIE)
     this.scene.time.delayedCall(PIG.DEAD_LINGER_MS, () => this.destroy())
   }
 
