@@ -475,12 +475,18 @@ export const MENU = {
   FIRST_BUTTON_Y: 140,
 } as const
 
-// a labeled box button, shared by the title menu and the pause overlay
+// a labeled, rounded, beveled button shared by the title menu and the pause overlay
 export const MENU_BUTTON = {
-  WIDTH: 132,
-  HEIGHT: 26,
-  GAP: 34,
+  WIDTH: 138,
+  HEIGHT: 28,
+  GAP: 38,
   FONT_SIZE: 10,
+  RADIUS: 7,
+  FILL: 0x5b5f8a,
+  FILL_TOP: 0x6d72a3,
+  BORDER: 0x23243c,
+  HIGHLIGHT: 0x9aa0d0,
+  SHADOW: 0x383a58,
 } as const
 
 // the single in-game button (top-right) that opens the pause overlay
