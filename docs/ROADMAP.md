@@ -145,12 +145,15 @@ updates the HUD; dying shows game over and restart works. Verified on the iOS Si
 
 Gaps that aren't tied to a single phase but are needed for a real game:
 
-- [ ] **Audio** — no sound at all yet: SFX (jump, hammer, hurt, box break, bomb/cannon,
-      pig death, door, pickup) + background music. Needs an audio service + asset pass.
+- [x] **Audio** — 8-bit SFX (jump, attack, hurt, box break, explosion, pig death,
+      pickup, buy) + eight selectable looping music tracks, behind an audio service.
+      Music is served as external files via `file://` (kept out of the JS bundle); a
+      settings panel (track / mute music+SFX / volume) opens from the menu and in-game.
+      Remaining: a door SFX, and persisting audio prefs via the Bridge.
 - [ ] **Real level design** — the current levels are **test arrangements**. Author real
       levels (layout + balanced enemy/box/cannon placement) once the systems are stable.
-- [ ] **Menu / title screen** — `MenuScene` is a stub; needs a real start screen
-      (and later: options, continue).
+- [ ] **Menu / title screen** — `MenuScene` now has a title + audio settings; still a
+      stub visually. Later: continue, and persisted options.
 
 ---
 
