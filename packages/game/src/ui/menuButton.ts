@@ -8,6 +8,9 @@ export interface MenuButtonConfig {
   readonly label: string
   readonly onTap: () => void
   readonly depth: number
+  readonly width?: number
+  readonly height?: number
+  readonly fontSize?: number
 }
 
 const INSET = 4 // how far the bevel highlight/shadow lines sit from the top/bottom edges
@@ -18,21 +21,25 @@ const INSET = 4 // how far the bevel highlight/shadow lines sit from the top/bot
 // so an overlay can track and destroy them.
 export function createMenuButton(scene: Phaser.Scene, config: MenuButtonConfig): Phaser.GameObjects.GameObject[] {
   const { x, y } = config
-  const w = MENU_BUTTON.WIDTH
-  const h = MENU_BUTTON.HEIGHT
-  const r = MENU_BUTTON.RADIUS
+  const w = config.width ?? MENU_BUTTON.WIDTH
+  const h = config.height ?? MENU_BUTTON.HEIGHT
+  const r = Math.min(MENU_BUTTON.RADIUS, Math.floor(h / 3))
   const left = x - w / 2
   const top = y - h / 2
 
   const face = scene.add.graphics().setScrollFactor(0).setDepth(config.depth)
   face.fillStyle(MENU_BUTTON.FILL, 1).fillRoundedRect(left, top, w, h, r)
-  face.fillStyle(MENU_BUTTON.FILL_TOP, 1).fillRoundedRect(left + 2, top + 2, w - 4, h / 2 - 2, r - 1)
+  face.fillStyle(MENU_BUTTON.FILL_TOP, 1).fillRoundedRect(left + 2, top + 2, w - 4, h / 2 - 2, Math.max(1, r - 1))
   face.lineStyle(2, MENU_BUTTON.HIGHLIGHT, 1).lineBetween(left + r, top + INSET, left + w - r, top + INSET)
   face.lineStyle(2, MENU_BUTTON.SHADOW, 1).lineBetween(left + r, top + h - INSET, left + w - r, top + h - INSET)
   face.lineStyle(2, MENU_BUTTON.BORDER, 1).strokeRoundedRect(left, top, w, h, r)
 
   const label = scene.add
-    .text(x, y, config.label, { fontFamily: FONT_FAMILY, fontSize: `${MENU_BUTTON.FONT_SIZE}px`, color: '#ffffff' })
+    .text(x, y, config.label, {
+      fontFamily: FONT_FAMILY,
+      fontSize: `${config.fontSize ?? MENU_BUTTON.FONT_SIZE}px`,
+      color: '#ffffff',
+    })
     .setOrigin(0.5)
     .setScrollFactor(0)
     .setDepth(config.depth + 1)
