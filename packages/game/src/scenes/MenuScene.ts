@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 
 import { FONT_FAMILY, MENU, MENU_BUTTON, PLAYER, SHOP } from '@/constants/GameConstants'
 import { SCENE_KEY } from '@/constants/keys'
+import { initAudio } from '@/services/audio'
 import { runProfile } from '@/services/runProfile'
 import { createMenuButton } from '@/ui/menuButton'
 import { SettingsOverlay } from '@/ui/SettingsOverlay'
@@ -16,6 +17,9 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    initAudio(this) // start the looping music here so it plays on the menu too (it
+    // is global and carries into the game); WebAudio resolves it on the first tap
+
     const cx = this.cameras.main.width / 2
 
     this.add
