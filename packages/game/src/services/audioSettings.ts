@@ -1,5 +1,7 @@
 import { SOUND_KEY } from '@/constants/keys'
+import { requestSave } from '@/services/saveBus'
 import type { MusicTrack, MusicTrackInfo } from '@/types/audio'
+import type { SaveData } from '@/types/save'
 
 // the catalogue every part of the audio stack reads from: BootScene loads each
 // file, the service maps id → sound key, and the settings panel lists the labels.
@@ -22,8 +24,9 @@ const STEP = 0.1
 
 const clampVolume = (v: number): number => Math.max(0, Math.min(1, Math.round(v * 10) / 10))
 
-// Player-facing audio preferences. Held in memory for now (Phase 6 persists it via
-// the Bridge, like the run profile); the audio service reads/applies these.
+// Player-facing audio preferences, persisted via the Bridge like the run profile.
+// The audio service reads/applies these; mutators request a save so a change to a
+// track / mute / volume survives an app restart.
 class AudioSettings {
   track: MusicTrack = 'epic'
   musicMuted = false
@@ -33,10 +36,21 @@ class AudioSettings {
 
   stepMusicVolume(direction: number): void {
     this.musicVolume = clampVolume(this.musicVolume + direction * STEP)
+    requestSave()
   }
 
   stepSfxVolume(direction: number): void {
     this.sfxVolume = clampVolume(this.sfxVolume + direction * STEP)
+    requestSave()
+  }
+
+  // apply a persisted snapshot at startup; sets fields directly (no save request)
+  hydrate(data: SaveData['audio']): void {
+    this.track = data.track
+    this.musicMuted = data.musicMuted
+    this.sfxMuted = data.sfxMuted
+    this.musicVolume = data.musicVolume
+    this.sfxVolume = data.sfxVolume
   }
 }
 

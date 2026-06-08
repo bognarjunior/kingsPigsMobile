@@ -1,6 +1,7 @@
 import type Phaser from 'phaser'
 
 import { audioSettings, MUSIC_KEY } from '@/services/audioSettings'
+import { requestSave } from '@/services/saveBus'
 import type { MusicTrack } from '@/types/audio'
 
 // Single point for playback, so every scene shares one music stream and the
@@ -48,15 +49,18 @@ function ensureMusic(): void {
 export function setMusicTrack(track: MusicTrack): void {
   audioSettings.track = track
   ensureMusic()
+  requestSave()
 }
 
 export function setMusicMuted(muted: boolean): void {
   audioSettings.musicMuted = muted
   music?.setMute(muted)
+  requestSave()
 }
 
 export function setSfxMuted(muted: boolean): void {
   audioSettings.sfxMuted = muted
+  requestSave()
 }
 
 export function changeMusicVolume(direction: number): void {

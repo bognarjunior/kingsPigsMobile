@@ -7,6 +7,7 @@ import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import { gameAudio } from '@/assets/game/gameAudio'
 import { gameHtml } from '@/assets/game/gameHtml'
 import { handleGameMessage } from '@/bridge/GameBridge'
+import { loadSave, saveGame } from '@/services/storageService'
 
 // Write the built game to disk and serve it over file:// so the WebView can load
 // the music as separate sibling files (kept out of the inlined HTML to keep the
@@ -43,14 +44,14 @@ async function prepareGame(): Promise<string> {
 }
 
 export function GameScreen() {
-  const [indexUri, setIndexUri] = useState<string | null>(null)
+  const [ready, setReady] = useState<{ uri: string; save: string | null } | null>(null)
 
   useEffect(() => {
     let active = true
-    prepareGame()
-      .then((uri) => {
+    Promise.all([prepareGame(), loadSave()])
+      .then(([uri, save]) => {
         if (active) {
-          setIndexUri(uri)
+          setReady({ uri, save })
         }
       })
       .catch((error) => console.error('[game] failed to prepare files', error))
@@ -60,10 +61,10 @@ export function GameScreen() {
   }, [])
 
   function onMessage(event: WebViewMessageEvent) {
-    handleGameMessage(event.nativeEvent.data)
+    handleGameMessage(event.nativeEvent.data, { onSave: saveGame })
   }
 
-  if (!indexUri) {
+  if (!ready) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator color="#ffffff" />
@@ -76,7 +77,8 @@ export function GameScreen() {
       <WebView
         style={styles.webview}
         originWhitelist={['*']}
-        source={{ uri: indexUri }}
+        injectedJavaScriptBeforeContentLoaded={`window.__KP_SAVE__ = ${ready.save ?? 'null'}; true;`}
+        source={{ uri: ready.uri }}
         allowFileAccess
         allowFileAccessFromFileURLs
         allowUniversalAccessFromFileURLs

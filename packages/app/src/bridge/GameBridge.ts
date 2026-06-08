@@ -1,6 +1,10 @@
 import type { GameMessage } from '@/types/bridge'
 
-export function handleGameMessage(raw: string): void {
+export interface GameMessageHandlers {
+  onSave?: (data: unknown) => void
+}
+
+export function handleGameMessage(raw: string, handlers: GameMessageHandlers = {}): void {
   let message: GameMessage
 
   try {
@@ -10,6 +14,12 @@ export function handleGameMessage(raw: string): void {
     return
   }
 
-  // Phase 6 routes these events to native features (storage, pause UI, score, etc.).
-  console.log('[bridge] game event:', message.event, message.payload)
+  switch (message.event) {
+    case 'game:save':
+      handlers.onSave?.(message.payload)
+      return
+    default:
+      // Phase 6 will route the rest (over / score / pause) to native features.
+      console.log('[bridge] game event:', message.event, message.payload)
+  }
 }
