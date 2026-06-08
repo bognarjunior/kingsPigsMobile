@@ -22,6 +22,7 @@ import {
   PIG_SPRITE,
 } from '@/constants/GameConstants'
 import { SCENE_KEY, SOUND_KEY, TEXTURE_KEY, TILEMAP_KEY } from '@/constants/keys'
+import { MUSIC_TRACKS } from '@/services/audioSettings'
 
 import kingIdleUrl from '@/assets/king/idle.png'
 import kingRunUrl from '@/assets/king/run.png'
@@ -207,9 +208,7 @@ export class BootScene extends Phaser.Scene {
     // music is NOT inlined — it lives next to index.html (in public/audio) and is
     // served as separate files; the app writes the build to disk and loads it via
     // a file:// URL so these relative paths resolve. (see GameScreen / ARCHITECTURE)
-    this.load.audio(SOUND_KEY.MUSIC_ORIGINAL, 'audio/music.mp3')
-    this.load.audio(SOUND_KEY.MUSIC_EPIC, 'audio/music-epic.mp3')
-    this.load.audio(SOUND_KEY.MUSIC_METAL, 'audio/music-metal.mp3')
+    MUSIC_TRACKS.forEach((track) => this.load.audio(track.key, track.file))
 
     this.load.tilemapTiledJSON(TILEMAP_KEY.LEVEL1, level1)
   }

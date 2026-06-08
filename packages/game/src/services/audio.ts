@@ -1,6 +1,7 @@
 import type Phaser from 'phaser'
 
-import { audioSettings, MUSIC_KEY, type MusicTrack } from '@/services/audioSettings'
+import { audioSettings, MUSIC_KEY } from '@/services/audioSettings'
+import type { MusicTrack } from '@/types/audio'
 
 // Single point for playback, so every scene shares one music stream and the
 // settings (track / mute / volume) apply everywhere. The sound manager is global
