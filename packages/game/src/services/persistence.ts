@@ -20,16 +20,36 @@ export function initPersistence(): void {
     audioSettings.hydrate(injected.audio)
   }
   onSaveNeeded(scheduleSave)
+
+  // flush a pending (debounced) save the moment the app is backgrounded or the page
+  // is torn down, so a change made in the last few hundred ms before closing survives
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      flush()
+    }
+  })
+  window.addEventListener('pagehide', flush)
 }
 
 function scheduleSave(): void {
   if (pending !== undefined) {
     return // a save is already queued; one snapshot covers the burst of changes
   }
-  pending = setTimeout(() => {
-    pending = undefined
-    sendToApp(GAME_EVENT.SAVE, snapshot())
-  }, SAVE_DEBOUNCE_MS)
+  pending = setTimeout(save, SAVE_DEBOUNCE_MS)
+}
+
+// send the queued save immediately (used when the app is about to background/close)
+function flush(): void {
+  if (pending === undefined) {
+    return
+  }
+  clearTimeout(pending)
+  save()
+}
+
+function save(): void {
+  pending = undefined
+  sendToApp(GAME_EVENT.SAVE, snapshot())
 }
 
 function snapshot(): SaveData {
