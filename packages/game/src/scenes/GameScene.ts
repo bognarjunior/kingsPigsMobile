@@ -22,6 +22,7 @@ import {
   KING_SPRITE,
   PIG_TIERS,
   PLAYER,
+  SETTINGS_BUTTON,
   SHOP,
 } from '@/constants/GameConstants'
 import { ENTITY_EVENT, GAME_EVENT } from '@/constants/events'
@@ -76,6 +77,7 @@ import { DiamondCounter } from '@/ui/DiamondCounter'
 import { GameOverOverlay } from '@/ui/GameOverOverlay'
 import { HealthBar } from '@/ui/HealthBar'
 import { LivesCounter } from '@/ui/LivesCounter'
+import { SettingsOverlay } from '@/ui/SettingsOverlay'
 import { ShopOverlay, type ShopItem } from '@/ui/ShopOverlay'
 import { VirtualControls } from '@/ui/VirtualControls'
 import { sendToApp } from '@/utils/bridge'
@@ -103,6 +105,8 @@ export class GameScene extends Phaser.Scene {
   private prevAttack = false
   private shopOpen = false
   private shopOverlay?: ShopOverlay
+  private settingsOpen = false
+  private settingsOverlay?: SettingsOverlay
 
   constructor() {
     super(SCENE_KEY.GAME)
@@ -163,6 +167,7 @@ export class GameScene extends Phaser.Scene {
     new DiamondCounter(this, runProfile.diamonds)
     new LivesCounter(this, runProfile.lives)
     this.createShopButton()
+    this.createSettingsButton()
     this.events.once(ENTITY_EVENT.PLAYER_DIED, this.handlePlayerDied, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOMB, this.throwBomb, this)
     this.events.on(ENTITY_EVENT.ENEMY_THROW_BOX, this.throwBox, this)
@@ -185,8 +190,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(): void {
-    if (this.shopOpen) {
-      return // shop is a hard pause: nothing in the level updates
+    if (this.shopOpen || this.settingsOpen) {
+      return // shop and settings are hard pauses: nothing in the level updates
     }
 
     const input = this.inputSystem.getState()
@@ -738,6 +743,47 @@ export class GameScene extends Phaser.Scene {
     this.physics.resume()
     this.shopOverlay?.destroy()
     this.shopOverlay = undefined
+  }
+
+  // a HUD button (top-left) opens the audio settings; separate from the shop
+  private createSettingsButton(): void {
+    const button = this.add
+      .rectangle(SETTINGS_BUTTON.X, SETTINGS_BUTTON.Y, SETTINGS_BUTTON.WIDTH, SETTINGS_BUTTON.HEIGHT, 0x000000, 0.45)
+      .setScrollFactor(0)
+      .setDepth(HUD.DEPTH)
+      .setStrokeStyle(1, 0xffffff, 0.6)
+      .setInteractive({ useHandCursor: true })
+    this.add
+      .text(SETTINGS_BUTTON.X, SETTINGS_BUTTON.Y, 'AUDIO', {
+        fontFamily: FONT_FAMILY,
+        fontSize: `${SETTINGS_BUTTON.FONT_SIZE}px`,
+        color: '#ffffff',
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(HUD.DEPTH + 1)
+    button.on(Phaser.Input.Events.POINTER_DOWN, () => this.openSettings())
+  }
+
+  // settings is a hard pause, like the shop: freeze physics, show the overlay
+  private openSettings(): void {
+    if (this.settingsOpen || this.shopOpen || this.phase !== 'play') {
+      return
+    }
+    this.settingsOpen = true
+    this.physics.pause()
+    ;(this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0)
+    this.settingsOverlay = new SettingsOverlay(this, () => this.closeSettings())
+  }
+
+  private closeSettings(): void {
+    if (!this.settingsOpen) {
+      return
+    }
+    this.settingsOpen = false
+    this.physics.resume()
+    this.settingsOverlay?.destroy()
+    this.settingsOverlay = undefined
   }
 
   private buyMaxHeart(): void {

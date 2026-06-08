@@ -29,7 +29,7 @@ class AudioSettings {
   track: MusicTrack = 'epic'
   musicMuted = false
   sfxMuted = false
-  musicVolume = 0.6
+  musicVolume = 0.2 // starts low on first launch; the player raises it in settings
   sfxVolume = 0.8
 
   stepMusicVolume(direction: number): void {

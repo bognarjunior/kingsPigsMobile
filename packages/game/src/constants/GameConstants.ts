@@ -490,6 +490,15 @@ export const SHOP = {
   INVULN_MS: 8000,
 } as const
 
+// the audio settings button (gear), top-left in both the menu and the game
+export const SETTINGS_BUTTON = {
+  X: 34,
+  Y: 12,
+  WIDTH: 56,
+  HEIGHT: 18,
+  FONT_SIZE: 8,
+} as const
+
 export const BOSS_HUD = {
   BAR_X: 140,
   BAR_Y: 28,
