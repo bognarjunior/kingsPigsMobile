@@ -15,7 +15,7 @@ only the assets it actually uses (avoids the noise of unused files).
 | 2 | Animation and State Machine | ✅ Done |
 | 3 | Mobile virtual controls | ✅ Done |
 | 4 | Tilemap / playable level | ✅ Done (iOS sim; Pig + shake → Phase 5) |
-| 5 | HUD, collectibles, and progression | 🚧 In progress |
+| 5 | HUD, collectibles, and progression | ✅ Core done (iOS sim); real save → Phase 6 |
 | 6 | Game ↔ app communication | ⬜ Not started |
 | 7 | Publishing | ⬜ Not started |
 
@@ -127,11 +127,11 @@ Make it a real game loop: fight, collect, lose, retry.
 - [x] Lives + death / game-over (hearts→lose a life→retry; 0 lives→game over) (LEVEL_DESIGN §5)
 - [x] Cannon hazard — manned by any pig; ballistic ball lands and turns into a bomb
 - [x] Box-pig ambush — crate disguised among loot; lunges once, then hatches into a real pig
-- [ ] **Pig from a door** — triggered appearance (door opens, a pig comes out) → closes the
-      enemy-appearance mix (fixed / box-pig / door) (LEVEL_DESIGN §2)
-- [ ] **Triggered enemy waves** (zone-on-enter) (LEVEL_DESIGN §2)
-- [ ] **Shop scene** — spend diamonds on King upgrades: max health, damage, invuln, extra life (LEVEL_DESIGN §4)
-- [ ] **King Pig boss** — recurring & scaling, locked arena, summons waves (LEVEL_DESIGN §10)
+- [x] **Pig from a door** — triggered appearance (door opens, the needed pigs come out, door vanishes)
+- [x] **Triggered enemy waves** (door spawners release waves on trigger) (LEVEL_DESIGN §2)
+- [x] **Shop** — spend diamonds on King upgrades (max health, damage, shield, extra life); opens from
+      the title menu and the in-game pause hub (LEVEL_DESIGN §4)
+- [x] **King Pig boss** — scaling, summons minion waves (LEVEL_DESIGN §10)
 - [ ] (polish) cannon's crouched match-pig sprite; box-pig configurable hatch type/tier
 
 > Full system design / decisions map lives in **[docs/LEVEL_DESIGN.md](LEVEL_DESIGN.md)**.
@@ -152,8 +152,8 @@ Gaps that aren't tied to a single phase but are needed for a real game:
       Remaining: a door SFX, and persisting audio prefs via the Bridge.
 - [ ] **Real level design** — the current levels are **test arrangements**. Author real
       levels (layout + balanced enemy/box/cannon placement) once the systems are stable.
-- [ ] **Menu / title screen** — `MenuScene` now has a title + audio settings; still a
-      stub visually. Later: continue, and persisted options.
+- [x] **Menu / title screen** — title hub with PLAY / SHOP / SETTINGS, a styled audio settings
+      panel, and an in-game pause hub; all share one beveled-button look. Later: a "continue".
 
 ---
 
