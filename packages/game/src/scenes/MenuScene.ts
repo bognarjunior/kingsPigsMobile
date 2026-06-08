@@ -1,75 +1,101 @@
 import Phaser from 'phaser'
 
-import { FONT_FAMILY, MENU, SETTINGS_BUTTON } from '@/constants/GameConstants'
+import { FONT_FAMILY, MENU, MENU_BUTTON, PLAYER, SHOP } from '@/constants/GameConstants'
 import { SCENE_KEY } from '@/constants/keys'
+import { runProfile } from '@/services/runProfile'
+import { createMenuButton } from '@/ui/menuButton'
 import { SettingsOverlay } from '@/ui/SettingsOverlay'
+import { ShopOverlay, type ShopItem } from '@/ui/ShopOverlay'
 
 export class MenuScene extends Phaser.Scene {
-  private settings?: SettingsOverlay
+  private shopOverlay?: ShopOverlay
+  private settingsOverlay?: SettingsOverlay
 
   constructor() {
     super(SCENE_KEY.MENU)
   }
 
   create(): void {
-    const { width, height } = this.cameras.main
+    const cx = this.cameras.main.width / 2
 
     this.add
-      .text(width / 2, height / 2 - MENU.TITLE_GAP, 'KINGS AND PIGS', {
-        fontFamily: FONT_FAMILY,
-        fontSize: '24px',
-        color: '#ffffff',
-      })
+      .text(cx, MENU.TITLE_Y, 'KINGS AND PIGS', { fontFamily: FONT_FAMILY, fontSize: '24px', color: '#ffffff' })
       .setOrigin(0.5)
 
-    this.add
-      .text(width / 2, height / 2 + MENU.TITLE_GAP, 'TAP TO PLAY', {
-        fontFamily: FONT_FAMILY,
-        fontSize: '8px',
-        color: '#c0c0c0',
-      })
-      .setOrigin(0.5)
-
-    // a full-screen zone (below the settings button) turns any empty tap into
-    // "play"; the button and the settings veil sit on top and absorb their taps
-    const tapZone = this.add.zone(0, 0, width, height).setOrigin(0).setInteractive()
-    tapZone.on(Phaser.Input.Events.POINTER_DOWN, this.startGame, this)
-
-    this.createSettingsButton()
-    this.input.keyboard?.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, this.startGame, this)
-  }
-
-  private createSettingsButton(): void {
-    const button = this.add
-      .rectangle(SETTINGS_BUTTON.X, SETTINGS_BUTTON.Y, SETTINGS_BUTTON.WIDTH, SETTINGS_BUTTON.HEIGHT, 0x000000, 0.45)
-      .setStrokeStyle(1, 0xffffff, 0.6)
-      .setInteractive({ useHandCursor: true })
-    this.add
-      .text(SETTINGS_BUTTON.X, SETTINGS_BUTTON.Y, 'AUDIO', {
-        fontFamily: FONT_FAMILY,
-        fontSize: `${SETTINGS_BUTTON.FONT_SIZE}px`,
-        color: '#ffffff',
-      })
-      .setOrigin(0.5)
-    button.on(Phaser.Input.Events.POINTER_DOWN, () => this.openSettings())
-  }
-
-  private openSettings(): void {
-    if (this.settings) {
-      return
-    }
-    this.settings = new SettingsOverlay(this, () => this.closeSettings())
-  }
-
-  private closeSettings(): void {
-    this.settings?.destroy()
-    this.settings = undefined
+    createMenuButton(this, { x: cx, y: MENU.FIRST_BUTTON_Y, label: 'PLAY', onTap: () => this.startGame(), depth: 0 })
+    createMenuButton(this, {
+      x: cx,
+      y: MENU.FIRST_BUTTON_Y + MENU_BUTTON.GAP,
+      label: 'SHOP',
+      onTap: () => this.openShop(),
+      depth: 0,
+    })
+    createMenuButton(this, {
+      x: cx,
+      y: MENU.FIRST_BUTTON_Y + MENU_BUTTON.GAP * 2,
+      label: 'SETTINGS',
+      onTap: () => this.openSettings(),
+      depth: 0,
+    })
   }
 
   private startGame(): void {
-    if (this.settings) {
-      return // ignore the tap-to-play while the settings panel is open
+    if (this.shopOverlay || this.settingsOverlay) {
+      return
     }
     this.scene.start(SCENE_KEY.GAME)
+  }
+
+  // shop from the title screen spends banked diamonds on the permanent upgrades only
+  // (the temporary in-run shield lives in the game's shop); the next run reads these
+  // from the run profile. No live player here, so nothing is applied directly.
+  private openShop(): void {
+    if (this.shopOverlay || this.settingsOverlay) {
+      return
+    }
+    const items: ShopItem[] = [
+      {
+        label: '+1 MAX HEART',
+        price: SHOP.PRICE_MAX_HEART,
+        available: () => PLAYER.MAX_HEARTS + runProfile.maxHeartBonusValue < PLAYER.MAX_HEARTS_CAP,
+        purchase: () => this.buyPermanent(SHOP.PRICE_MAX_HEART, () => runProfile.raiseMaxHeartBonus()),
+      },
+      {
+        label: '+DAMAGE',
+        price: SHOP.PRICE_DAMAGE,
+        available: () => true,
+        purchase: () => this.buyPermanent(SHOP.PRICE_DAMAGE, () => runProfile.raiseDamageBonus(SHOP.DAMAGE_STEP)),
+      },
+      {
+        label: '+1 LIFE',
+        price: SHOP.PRICE_LIFE,
+        available: () => true,
+        purchase: () => this.buyPermanent(SHOP.PRICE_LIFE, () => runProfile.addLife()),
+      },
+    ]
+    this.shopOverlay = new ShopOverlay(this, items, () => this.closeShop())
+  }
+
+  private buyPermanent(price: number, apply: () => void): void {
+    if (runProfile.spend(price)) {
+      apply()
+    }
+  }
+
+  private closeShop(): void {
+    this.shopOverlay?.destroy()
+    this.shopOverlay = undefined
+  }
+
+  private openSettings(): void {
+    if (this.shopOverlay || this.settingsOverlay) {
+      return
+    }
+    this.settingsOverlay = new SettingsOverlay(this, () => this.closeSettings())
+  }
+
+  private closeSettings(): void {
+    this.settingsOverlay?.destroy()
+    this.settingsOverlay = undefined
   }
 }

@@ -471,7 +471,24 @@ export const CONTROLS = {
 } as const
 
 export const MENU = {
-  TITLE_GAP: 20,
+  TITLE_Y: 72,
+  FIRST_BUTTON_Y: 140,
+} as const
+
+// a labeled box button, shared by the title menu and the pause overlay
+export const MENU_BUTTON = {
+  WIDTH: 132,
+  HEIGHT: 26,
+  GAP: 34,
+  FONT_SIZE: 10,
+} as const
+
+// the single in-game button (top-right) that opens the pause overlay
+export const PAUSE_BUTTON = {
+  MARGIN: 10,
+  WIDTH: 26,
+  HEIGHT: 18,
+  FONT_SIZE: 10,
 } as const
 
 export const PICKUP = {
@@ -488,15 +505,6 @@ export const SHOP = {
   PRICE_INVULN: 5,
   DAMAGE_STEP: 10,
   INVULN_MS: 8000,
-} as const
-
-// the audio settings button (gear), top-left in both the menu and the game
-export const SETTINGS_BUTTON = {
-  X: 34,
-  Y: 12,
-  WIDTH: 56,
-  HEIGHT: 18,
-  FONT_SIZE: 8,
 } as const
 
 export const BOSS_HUD = {
