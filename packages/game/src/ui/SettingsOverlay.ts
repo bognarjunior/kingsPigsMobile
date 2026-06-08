@@ -17,6 +17,7 @@ const TRACK_X = 0.28 // fraction of width for the track list column
 const CONTROL_X = 0.66 // fraction of width for the volume/mute column
 const CONTROL_SPACING = 30
 const STEP_GAP = 26 // distance from the value to each -/+ button
+const TOGGLE_GAP = 64 // half-width of a toggle row, so the ON/OFF clears the label
 const SELECTED_COLOR = '#9fe0ff'
 const IDLE_COLOR = '#ffffff'
 const VOLUME_SCALE = 100
@@ -85,7 +86,7 @@ export class SettingsOverlay {
       changeMusicVolume(direction)
       this.refresh()
     })
-    this.sfxVolumeValue = this.buildVolumeRow(x, top + CONTROL_SPACING, 'SFX VOL', (direction) => {
+    this.sfxVolumeValue = this.buildVolumeRow(x, top + CONTROL_SPACING, 'EFFECTS VOL', (direction) => {
       changeSfxVolume(direction)
       this.refresh()
     })
@@ -93,7 +94,7 @@ export class SettingsOverlay {
       setMusicMuted(!audioSettings.musicMuted)
       this.refresh()
     })
-    this.sfxToggle = this.buildToggleRow(x, top + CONTROL_SPACING * 3, 'SFX', () => {
+    this.sfxToggle = this.buildToggleRow(x, top + CONTROL_SPACING * 3, 'EFFECTS', () => {
       setSfxMuted(!audioSettings.sfxMuted)
       this.refresh()
     })
@@ -110,8 +111,8 @@ export class SettingsOverlay {
 
   // a "LABEL  ON/OFF" toggle row; returns the state text so refresh() can update it
   private buildToggleRow(x: number, y: number, text: string, onToggle: () => void): Phaser.GameObjects.Text {
-    this.label(x - STEP_GAP, y, text, 8, IDLE_COLOR).setOrigin(0, 0.5)
-    const state = this.label(x + STEP_GAP, y, '', 8, SELECTED_COLOR).setOrigin(1, 0.5)
+    this.label(x - TOGGLE_GAP, y, text, 8, IDLE_COLOR).setOrigin(0, 0.5)
+    const state = this.label(x + TOGGLE_GAP, y, '', 8, SELECTED_COLOR).setOrigin(1, 0.5)
     state.setInteractive({ useHandCursor: true })
     state.on(Phaser.Input.Events.POINTER_DOWN, onToggle)
     return state
