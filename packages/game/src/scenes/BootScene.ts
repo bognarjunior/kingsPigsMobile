@@ -90,6 +90,7 @@ import boxBreakSfx from '@/assets/audio/box-break.wav'
 import explosionSfx from '@/assets/audio/explosion.wav'
 import pickupSfx from '@/assets/audio/pickup.wav'
 import buySfx from '@/assets/audio/buy.wav'
+import stompSfx from '@/assets/audio/stomp.wav'
 import level1 from '@/assets/levels/level1.json'
 
 export class BootScene extends Phaser.Scene {
@@ -205,6 +206,7 @@ export class BootScene extends Phaser.Scene {
     this.load.audio(SOUND_KEY.EXPLOSION, explosionSfx)
     this.load.audio(SOUND_KEY.PICKUP, pickupSfx)
     this.load.audio(SOUND_KEY.BUY, buySfx)
+    this.load.audio(SOUND_KEY.STOMP, stompSfx)
     // music is NOT inlined — it lives next to index.html (in public/audio) and is
     // served as separate files; the app writes the build to disk and loads it via
     // a file:// URL so these relative paths resolve. (see GameScreen / ARCHITECTURE)

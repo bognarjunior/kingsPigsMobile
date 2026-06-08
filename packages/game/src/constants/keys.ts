@@ -13,6 +13,7 @@ export const SOUND_KEY = {
   EXPLOSION: 'sfx-explosion',
   PICKUP: 'sfx-pickup',
   BUY: 'sfx-buy',
+  STOMP: 'sfx-stomp',
   MUSIC_ORIGINAL: 'music-original',
   MUSIC_EPIC: 'music-epic',
   MUSIC_METAL: 'music-metal',

@@ -525,6 +525,7 @@ export class GameScene extends Phaser.Scene {
     if (fallingOntoHead) {
       pig.stomp()
       this.player.bounce()
+      playSfx(SOUND_KEY.STOMP)
     }
   }
 
