@@ -16,7 +16,7 @@ only the assets it actually uses (avoids the noise of unused files).
 | 3 | Mobile virtual controls | ✅ Done |
 | 4 | Tilemap / playable level | ✅ Done (iOS sim; Pig + shake → Phase 5) |
 | 5 | HUD, collectibles, and progression | ✅ Core done (iOS sim); real save → Phase 6 |
-| 6 | Game ↔ app communication | ⬜ Not started |
+| 6 | Game ↔ app communication | 🚧 Persistence done (profile + audio); rest pending |
 | 7 | Publishing | ⬜ Not started |
 
 **Legend:** ⬜ not started · 🚧 in progress · ✅ done (acceptance verified on Android+iOS)
@@ -162,10 +162,10 @@ Gaps that aren't tied to a single phase but are needed for a real game:
 Close the loop with the native shell.
 
 - [ ] Emit all bridge events from the game: `game:ready`, `game:over`, `game:score`, `game:pause`
-- [ ] `GameBridge` routes typed `onMessage` events to handlers in the app
-- [ ] Native persistence via `storageService` (AsyncStorage): the player **profile**
-      (diamonds, lives, upgrades, per-level loot-taken, progress) — see LEVEL_DESIGN §7
-- [ ] `game:save` / `game:load` round-trip through the Bridge
+- [x] `GameBridge` routes typed `onMessage` events to handlers in the app (routes `game:save`)
+- [x] Native persistence via `storageService` (AsyncStorage): the player **profile**
+      (diamonds, lives, upgrades, per-level loot-taken) **+ audio prefs** — see LEVEL_DESIGN §7
+- [x] `game:save` / `game:load` round-trip through the Bridge (save event + injected hydration)
 - [ ] App → game commands via `injectedJavaScript` (e.g. pause/resume from native)
 - [ ] App state via Context API (e.g. high score) wired to the bridge events
 
