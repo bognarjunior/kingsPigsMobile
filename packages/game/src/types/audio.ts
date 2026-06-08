@@ -4,7 +4,6 @@ export type MusicTrack =
   | 'metal'
   | 'medieval'
   | 'whistler'
-  | 'whistler-short'
   | 'minstrels'
   | 'exploration'
 

@@ -15,8 +15,12 @@ const DIM_ALPHA = 0.88
 const TRACK_SPACING = 18
 const TRACK_X = 0.28 // fraction of width for the track list column
 const CONTROL_X = 0.66 // fraction of width for the volume/mute column
-const CONTROL_SPACING = 30
-const STEP_GAP = 26 // distance from the value to each -/+ button
+const CONTROL_SPACING = 42
+const VALUE_DROP = 18 // the value + buttons sit this far below their row label
+const STEP_GAP = 40 // distance from the value to each -/+ button
+const STEP_HIT_W = 30 // -/+ touch target (kept finger-sized for phones)
+const STEP_HIT_H = 22
+const STEP_GLYPH_SIZE = 14
 const TOGGLE_GAP = 64 // half-width of a toggle row, so the ON/OFF clears the label
 const SELECTED_COLOR = '#9fe0ff'
 const IDLE_COLOR = '#ffffff'
@@ -100,12 +104,12 @@ export class SettingsOverlay {
     })
   }
 
-  // a "LABEL  [-] 60% [+]" row; returns the value text so refresh() can update it
+  // a "LABEL" over a "[-] 60% [+]" line; returns the value text so refresh() updates it
   private buildVolumeRow(x: number, y: number, text: string, onStep: (direction: number) => void): Phaser.GameObjects.Text {
-    this.label(x, y - 9, text, 8, IDLE_COLOR).setOrigin(0.5, 0)
-    const value = this.label(x, y + 6, '', 8, SELECTED_COLOR).setOrigin(0.5)
-    this.stepButton(x - STEP_GAP, y + 6, '-', () => onStep(-1))
-    this.stepButton(x + STEP_GAP, y + 6, '+', () => onStep(1))
+    this.label(x, y, text, 8, IDLE_COLOR).setOrigin(0.5)
+    const value = this.label(x, y + VALUE_DROP, '', 8, SELECTED_COLOR).setOrigin(0.5)
+    this.stepButton(x - STEP_GAP, y + VALUE_DROP, '-', () => onStep(-1))
+    this.stepButton(x + STEP_GAP, y + VALUE_DROP, '+', () => onStep(1))
     return value
   }
 
@@ -118,11 +122,17 @@ export class SettingsOverlay {
     return state
   }
 
-  private stepButton(x: number, y: number, glyph: string, onTap: () => void): Phaser.GameObjects.Text {
-    const button = this.label(x, y, glyph, 10, IDLE_COLOR).setOrigin(0.5)
-    button.setInteractive({ useHandCursor: true })
-    button.on(Phaser.Input.Events.POINTER_DOWN, onTap)
-    return button
+  // a finger-sized box with a -/+ glyph; the box is the hit target, not the glyph
+  private stepButton(x: number, y: number, glyph: string, onTap: () => void): void {
+    const hit = this.scene.add
+      .rectangle(x, y, STEP_HIT_W, STEP_HIT_H, 0x000000, 0.45)
+      .setScrollFactor(0)
+      .setDepth(DEPTH + 1)
+      .setStrokeStyle(1, 0xffffff, 0.6)
+      .setInteractive({ useHandCursor: true })
+    hit.on(Phaser.Input.Events.POINTER_DOWN, onTap)
+    this.track(hit)
+    this.label(x, y, glyph, STEP_GLYPH_SIZE, IDLE_COLOR).setOrigin(0.5)
   }
 
   private refresh(): void {

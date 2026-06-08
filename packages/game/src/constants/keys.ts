@@ -18,7 +18,6 @@ export const SOUND_KEY = {
   MUSIC_METAL: 'music-metal',
   MUSIC_MEDIEVAL: 'music-medieval',
   MUSIC_WHISTLER: 'music-whistler',
-  MUSIC_WHISTLER_SHORT: 'music-whistler-short',
   MUSIC_MINSTRELS: 'music-minstrels',
   MUSIC_EXPLORATION: 'music-exploration',
 } as const

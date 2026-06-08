@@ -9,7 +9,6 @@ export const MUSIC_TRACKS: readonly MusicTrackInfo[] = [
   { id: 'metal', key: SOUND_KEY.MUSIC_METAL, file: 'audio/music-metal.mp3', label: 'METAL' },
   { id: 'medieval', key: SOUND_KEY.MUSIC_MEDIEVAL, file: 'audio/music-medieval.mp3', label: 'MEDIEVAL' },
   { id: 'whistler', key: SOUND_KEY.MUSIC_WHISTLER, file: 'audio/music-whistler.mp3', label: 'WHISTLER' },
-  { id: 'whistler-short', key: SOUND_KEY.MUSIC_WHISTLER_SHORT, file: 'audio/music-whistler-short.mp3', label: 'WHISTLER 30S' },
   { id: 'minstrels', key: SOUND_KEY.MUSIC_MINSTRELS, file: 'audio/music-minstrels.mp3', label: 'MINSTRELS' },
   { id: 'exploration', key: SOUND_KEY.MUSIC_EXPLORATION, file: 'audio/music-exploration.mp3', label: 'EXPLORATION' },
 ]
@@ -19,9 +18,9 @@ export const MUSIC_KEY: Readonly<Record<MusicTrack, string>> = MUSIC_TRACKS.redu
   {} as Record<MusicTrack, string>,
 )
 
-const STEP = 0.2
+const STEP = 0.1
 
-const clampVolume = (v: number): number => Math.max(0, Math.min(1, Math.round(v * 5) / 5))
+const clampVolume = (v: number): number => Math.max(0, Math.min(1, Math.round(v * 10) / 10))
 
 // Player-facing audio preferences. Held in memory for now (Phase 6 persists it via
 // the Bridge, like the run profile); the audio service reads/applies these.
