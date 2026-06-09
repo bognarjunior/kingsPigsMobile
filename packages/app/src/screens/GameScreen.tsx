@@ -1,13 +1,21 @@
 import { Asset } from 'expo-asset'
 import { Directory, File, Paths } from 'expo-file-system'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, BackHandler, Platform, StyleSheet, View } from 'react-native'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 
 import { gameAudio } from '@/assets/game/gameAudio'
 import { gameHtml } from '@/assets/game/gameHtml'
 import { handleGameMessage } from '@/bridge/GameBridge'
 import { loadSave, saveGame } from '@/services/storageService'
+
+// Close the app when the game asks to exit. Only Android allows a deliberate exit;
+// iOS forbids quitting programmatically, so the request is a no-op there.
+function exitApp(): void {
+  if (Platform.OS === 'android') {
+    BackHandler.exitApp()
+  }
+}
 
 // Write the built game to disk and serve it over file:// so the WebView can load
 // the music as separate sibling files (kept out of the inlined HTML to keep the
@@ -61,7 +69,7 @@ export function GameScreen() {
   }, [])
 
   function onMessage(event: WebViewMessageEvent) {
-    handleGameMessage(event.nativeEvent.data, { onSave: saveGame })
+    handleGameMessage(event.nativeEvent.data, { onSave: saveGame, onExit: exitApp })
   }
 
   if (!ready) {

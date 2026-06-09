@@ -1,5 +1,12 @@
 import type { PigTier, Rgb } from '@/types/enemy'
 
+// real touchscreens fire several simultaneous pointers (resting fingers, quick
+// taps overlapping a held virtual control); Phaser tracks only one touch pointer by
+// default, which drops taps and makes buttons feel unresponsive on a phone
+export const INPUT = {
+  ACTIVE_POINTERS: 3,
+} as const
+
 export const DISPLAY = {
   WIDTH: 480,
   HEIGHT: 270,
@@ -472,7 +479,7 @@ export const CONTROLS = {
 
 export const MENU = {
   TITLE_Y: 72,
-  FIRST_BUTTON_Y: 140,
+  FIRST_BUTTON_Y: 118,
 } as const
 
 // a labeled, rounded, beveled button shared by the title menu and the pause overlay

@@ -1,12 +1,14 @@
 import Phaser from 'phaser'
 
 import { FONT_FAMILY, MENU, MENU_BUTTON, PLAYER, SHOP } from '@/constants/GameConstants'
+import { GAME_EVENT } from '@/constants/events'
 import { SCENE_KEY } from '@/constants/keys'
 import { initAudio } from '@/services/audio'
 import { runProfile } from '@/services/runProfile'
 import { createMenuButton } from '@/ui/menuButton'
 import { SettingsOverlay } from '@/ui/SettingsOverlay'
 import { ShopOverlay, type ShopItem } from '@/ui/ShopOverlay'
+import { sendToApp } from '@/utils/bridge'
 
 export class MenuScene extends Phaser.Scene {
   private shopOverlay?: ShopOverlay
@@ -41,6 +43,22 @@ export class MenuScene extends Phaser.Scene {
       onTap: () => this.openSettings(),
       depth: 0,
     })
+    createMenuButton(this, {
+      x: cx,
+      y: MENU.FIRST_BUTTON_Y + MENU_BUTTON.GAP * 3,
+      label: 'EXIT',
+      onTap: () => this.exitApp(),
+      depth: 0,
+    })
+  }
+
+  // ask the app to close itself (Android only; iOS forbids a programmatic exit so the
+  // app ignores it). The game never touches the platform directly — it goes via Bridge.
+  private exitApp(): void {
+    if (this.shopOverlay || this.settingsOverlay) {
+      return
+    }
+    sendToApp(GAME_EVENT.EXIT)
   }
 
   private startGame(): void {

@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import { COLORS, DISPLAY, PHYSICS } from '@/constants/GameConstants'
+import { COLORS, DISPLAY, INPUT, PHYSICS } from '@/constants/GameConstants'
 import { BootScene } from '@/scenes/BootScene'
 import { GameScene } from '@/scenes/GameScene'
 import { MenuScene } from '@/scenes/MenuScene'
@@ -26,6 +26,9 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
+  },
+  input: {
+    activePointers: INPUT.ACTIVE_POINTERS,
   },
   physics: {
     default: 'arcade',

@@ -10,6 +10,7 @@ export interface PauseActions {
   readonly onResume: () => void
   readonly onShop: () => void
   readonly onSettings: () => void
+  readonly onQuit: () => void
 }
 
 // The in-game pause veil: a single hub with RESUME / SHOP / SETTINGS, so the play
@@ -49,9 +50,10 @@ export class PauseOverlay {
         .setDepth(DEPTH + 1),
     )
 
-    this.button(cx, cy - MENU_BUTTON.GAP, 'RESUME', this.actions.onResume)
-    this.button(cx, cy, 'SHOP', this.actions.onShop)
-    this.button(cx, cy + MENU_BUTTON.GAP, 'SETTINGS', this.actions.onSettings)
+    this.button(cx, cy - MENU_BUTTON.GAP * 1.5, 'RESUME', this.actions.onResume)
+    this.button(cx, cy - MENU_BUTTON.GAP * 0.5, 'SHOP', this.actions.onShop)
+    this.button(cx, cy + MENU_BUTTON.GAP * 0.5, 'SETTINGS', this.actions.onSettings)
+    this.button(cx, cy + MENU_BUTTON.GAP * 1.5, 'QUIT', this.actions.onQuit)
   }
 
   private button(x: number, y: number, label: string, onTap: () => void): void {

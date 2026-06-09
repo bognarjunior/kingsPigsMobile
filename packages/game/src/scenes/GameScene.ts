@@ -740,7 +740,16 @@ export class GameScene extends Phaser.Scene {
         this.dismissPause()
         this.openSettings()
       },
+      onQuit: () => this.quitToMenu(),
     })
+  }
+
+  // abandon the current run and return to the title screen: like a game over, the run
+  // is reset (lives refilled, loot reopened) while the diamond wallet and upgrades stay
+  private quitToMenu(): void {
+    this.dismissPause()
+    runProfile.resetRun()
+    this.scene.start(SCENE_KEY.MENU)
   }
 
   // drop the pause overlay but keep physics frozen (a child menu is taking over)

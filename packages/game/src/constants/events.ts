@@ -6,6 +6,7 @@ export const GAME_EVENT = {
   PAUSE: 'game:pause',
   SAVE: 'game:save',
   LOAD: 'game:load',
+  EXIT: 'game:exit',
 } as const
 
 export type GameEventName = (typeof GAME_EVENT)[keyof typeof GAME_EVENT]
