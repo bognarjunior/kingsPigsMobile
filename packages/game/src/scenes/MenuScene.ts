@@ -8,7 +8,7 @@ import { runProfile } from '@/services/runProfile'
 import { createMenuButton } from '@/ui/menuButton'
 import { SettingsOverlay } from '@/ui/SettingsOverlay'
 import { ShopOverlay, type ShopItem } from '@/ui/ShopOverlay'
-import { sendToApp } from '@/utils/bridge'
+import { canExitApp, sendToApp } from '@/utils/bridge'
 
 export class MenuScene extends Phaser.Scene {
   private shopOverlay?: ShopOverlay
@@ -43,13 +43,15 @@ export class MenuScene extends Phaser.Scene {
       onTap: () => this.openSettings(),
       depth: 0,
     })
-    createMenuButton(this, {
-      x: cx,
-      y: MENU.FIRST_BUTTON_Y + MENU_BUTTON.GAP * 3,
-      label: 'EXIT',
-      onTap: () => this.exitApp(),
-      depth: 0,
-    })
+    if (canExitApp()) {
+      createMenuButton(this, {
+        x: cx,
+        y: MENU.FIRST_BUTTON_Y + MENU_BUTTON.GAP * 3,
+        label: 'EXIT',
+        onTap: () => this.exitApp(),
+        depth: 0,
+      })
+    }
   }
 
   // ask the app to close itself (Android only; iOS forbids a programmatic exit so the

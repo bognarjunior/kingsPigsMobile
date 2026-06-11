@@ -4,4 +4,6 @@ export interface ReactNativeWebView {
 
 export interface BridgeWindow {
   ReactNativeWebView?: ReactNativeWebView
+  // the host platform the app injects before boot ('ios' | 'android' | ...)
+  __KP_PLATFORM__?: string
 }

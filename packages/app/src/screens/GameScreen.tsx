@@ -85,7 +85,7 @@ export function GameScreen() {
       <WebView
         style={styles.webview}
         originWhitelist={['*']}
-        injectedJavaScriptBeforeContentLoaded={`window.__KP_SAVE__ = ${ready.save ?? 'null'}; true;`}
+        injectedJavaScriptBeforeContentLoaded={`window.__KP_SAVE__ = ${ready.save ?? 'null'}; window.__KP_PLATFORM__ = '${Platform.OS}'; true;`}
         source={{ uri: ready.uri }}
         allowFileAccess
         allowFileAccessFromFileURLs
