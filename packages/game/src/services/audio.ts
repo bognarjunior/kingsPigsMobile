@@ -15,10 +15,29 @@ type ControllableSound = Phaser.Sound.BaseSound & {
 
 let manager: Phaser.Sound.BaseSoundManager | undefined
 let music: ControllableSound | undefined
+let lifecycleBound = false
 
 export function initAudio(scene: Phaser.Scene): void {
   manager = scene.sound
+  bindBackgroundAudio()
   ensureMusic()
+}
+
+// Silence everything while the app is in the background and resume on return. The
+// WebView keeps the audio context alive when minimized, so the music would otherwise
+// keep playing off-screen; visibilitychange is the reliable signal on iOS and Android.
+function bindBackgroundAudio(): void {
+  if (lifecycleBound) {
+    return
+  }
+  lifecycleBound = true
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      manager?.pauseAll()
+    } else {
+      manager?.resumeAll()
+    }
+  })
 }
 
 export function playSfx(key: string): void {
