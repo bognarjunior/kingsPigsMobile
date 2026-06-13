@@ -1,8 +1,8 @@
 import Phaser from 'phaser'
 
-import { FONT_FAMILY, MENU, MENU_BUTTON, PLAYER, SHOP } from '@/constants/GameConstants'
+import { MENU, MENU_BUTTON, PLAYER, SHOP } from '@/constants/GameConstants'
 import { GAME_EVENT } from '@/constants/events'
-import { SCENE_KEY } from '@/constants/keys'
+import { SCENE_KEY, TEXTURE_KEY } from '@/constants/keys'
 import { initAudio } from '@/services/audio'
 import { runProfile } from '@/services/runProfile'
 import { createMenuButton } from '@/ui/menuButton'
@@ -24,9 +24,7 @@ export class MenuScene extends Phaser.Scene {
 
     const cx = this.cameras.main.width / 2
 
-    this.add
-      .text(cx, MENU.TITLE_Y, 'KINGS AND PIGS', { fontFamily: FONT_FAMILY, fontSize: '24px', color: '#ffffff' })
-      .setOrigin(0.5)
+    this.add.image(cx, MENU.TITLE_Y, TEXTURE_KEY.TITLE).setOrigin(0.5).setScale(MENU.TITLE_SCALE)
 
     createMenuButton(this, { x: cx, y: MENU.FIRST_BUTTON_Y, label: 'PLAY', onTap: () => this.startGame(), depth: 0 })
     createMenuButton(this, {

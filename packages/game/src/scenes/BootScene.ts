@@ -79,6 +79,7 @@ import heartUrl from '@/assets/hud/heart.png'
 import diamondUrl from '@/assets/hud/diamond.png'
 import numbersUrl from '@/assets/hud/numbers.png'
 import kingHeadUrl from '@/assets/hud/king-head.png'
+import titleUrl from '@/assets/ui/title.png'
 import bigHeartUrl from '@/assets/pickups/heart.png'
 import bigDiamondUrl from '@/assets/pickups/diamond.png'
 import pressStart2pUrl from '@/assets/fonts/PressStart2P.ttf'
@@ -197,6 +198,7 @@ export class BootScene extends Phaser.Scene {
       frameHeight: NUMBER_SPRITE.FRAME_HEIGHT,
     })
     this.load.image(TEXTURE_KEY.KING_HEAD, kingHeadUrl)
+    this.load.image(TEXTURE_KEY.TITLE, titleUrl)
 
     this.load.audio(SOUND_KEY.JUMP, jumpSfx)
     this.load.audio(SOUND_KEY.ATTACK, attackSfx)

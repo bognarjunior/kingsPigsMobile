@@ -479,6 +479,7 @@ export const CONTROLS = {
 
 export const MENU = {
   TITLE_Y: 72,
+  TITLE_SCALE: 3,
   FIRST_BUTTON_Y: 118,
 } as const
 

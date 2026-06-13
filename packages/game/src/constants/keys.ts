@@ -81,6 +81,7 @@ export const TEXTURE_KEY = {
   DOOR_IDLE: 'door-idle',
   DOOR_OPENING: 'door-opening',
   DOOR_CLOSING: 'door-closing',
+  TITLE: 'title',
 } as const
 
 export const TILEMAP_KEY = {
