@@ -1,12 +1,13 @@
 import { Asset } from 'expo-asset'
 import { Directory, File, Paths } from 'expo-file-system'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, BackHandler, Platform, StyleSheet, View } from 'react-native'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 
 import { gameAudio } from '@/assets/game/gameAudio'
 import { gameHtml } from '@/assets/game/gameHtml'
 import { handleGameMessage } from '@/bridge/GameBridge'
+import { useBackgroundPause } from '@/hooks/useBackgroundPause'
 import { loadSave, saveGame } from '@/services/storageService'
 
 // Close the app when the game asks to exit. Only Android allows a deliberate exit;
@@ -53,6 +54,8 @@ async function prepareGame(): Promise<string> {
 
 export function GameScreen() {
   const [ready, setReady] = useState<{ uri: string; save: string | null } | null>(null)
+  const webViewRef = useRef<WebView>(null)
+  useBackgroundPause(webViewRef)
 
   useEffect(() => {
     let active = true
@@ -83,6 +86,7 @@ export function GameScreen() {
   return (
     <View style={styles.container}>
       <WebView
+        ref={webViewRef}
         style={styles.webview}
         originWhitelist={['*']}
         injectedJavaScriptBeforeContentLoaded={`window.__KP_SAVE__ = ${ready.save ?? 'null'}; window.__KP_PLATFORM__ = '${Platform.OS}'; true;`}

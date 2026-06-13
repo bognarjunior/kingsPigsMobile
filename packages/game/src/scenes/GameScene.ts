@@ -81,6 +81,8 @@ import { PauseOverlay } from '@/ui/PauseOverlay'
 import { SettingsOverlay } from '@/ui/SettingsOverlay'
 import { ShopOverlay, type ShopItem } from '@/ui/ShopOverlay'
 import { VirtualControls } from '@/ui/VirtualControls'
+import { onAppCommand } from '@/services/commandBus'
+import type { AppCommand } from '@/types/command'
 import { sendToApp } from '@/utils/bridge'
 
 const DOOR_DEPTH = 5
@@ -177,6 +179,13 @@ export class GameScene extends Phaser.Scene {
     this.events.on(ENTITY_EVENT.BOXPIG_REVEAL, this.revealBoxPig, this)
     this.events.on(ENTITY_EVENT.KING_PIG_SUMMON, this.summonBossMinions, this)
     this.events.on(ENTITY_EVENT.CANNON_FIRE, this.fireCannonBall, this)
+    this.events.on(ENTITY_EVENT.PLAYER_DIAMONDS, this.reportScore, this)
+
+    // freeze the run when the app is backgrounded (incoming call, home, control center)
+    // so returning players land on the pause hub instead of mid-action; HIDDEN is the
+    // game's cross-platform visibility signal (same one that pauses the audio)
+    this.game.events.on(Phaser.Core.Events.HIDDEN, this.handleAppHidden, this)
+    onAppCommand((command) => this.handleAppCommand(command))
 
     const { widthInPixels, heightInPixels } = map
     this.physics.world.setBounds(0, 0, widthInPixels, heightInPixels)
@@ -742,6 +751,7 @@ export class GameScene extends Phaser.Scene {
       },
       onQuit: () => this.quitToMenu(),
     })
+    sendToApp(GAME_EVENT.PAUSE)
   }
 
   // abandon the current run and return to the title screen: like a game over, the run
@@ -765,6 +775,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.dismissPause()
     this.physics.resume()
+    sendToApp(GAME_EVENT.RESUME)
   }
 
   // the shop is a hard pause: freeze physics, show the overlay
@@ -852,6 +863,30 @@ export class GameScene extends Phaser.Scene {
 
   private handleShutdown(): void {
     this.events.off(ENTITY_EVENT.KING_PIG_SUMMON, this.summonBossMinions, this)
+    this.game.events.off(Phaser.Core.Events.HIDDEN, this.handleAppHidden, this)
+    onAppCommand(undefined)
     this.virtualControls.destroy()
+  }
+
+  // the app went to the background: auto-pause an active run so the player resumes on
+  // their own terms (no effect if a menu already froze the level)
+  private handleAppHidden(): void {
+    if (this.phase === 'play' && !this.pauseOpen && !this.shopOpen && !this.settingsOpen) {
+      this.openPause()
+    }
+  }
+
+  // pause/resume requested by the native app (app → game channel); the open/close
+  // guards keep a repeated command or one during a menu harmless
+  private handleAppCommand(command: AppCommand): void {
+    if (command === 'pause') {
+      this.handleAppHidden()
+    } else {
+      this.closePause()
+    }
+  }
+
+  private reportScore(value: number): void {
+    sendToApp(GAME_EVENT.SCORE, { value })
   }
 }

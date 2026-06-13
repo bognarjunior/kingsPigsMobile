@@ -16,7 +16,7 @@ only the assets it actually uses (avoids the noise of unused files).
 | 3 | Mobile virtual controls | ✅ Done |
 | 4 | Tilemap / playable level | ✅ Done (iOS sim; Pig + shake → Phase 5) |
 | 5 | HUD, collectibles, and progression | ✅ Core done (iOS sim); real save → Phase 6 |
-| 6 | Game ↔ app communication | 🚧 Persistence done (profile + audio); rest pending |
+| 6 | Game ↔ app communication | ✅ Core done (iOS sim); high-score N/A by design; on-device pass pending |
 | 7 | Publishing | ⬜ Not started |
 
 **Legend:** ⬜ not started · 🚧 in progress · ✅ done (acceptance verified on Android+iOS)
@@ -161,16 +161,23 @@ Gaps that aren't tied to a single phase but are needed for a real game:
 
 Close the loop with the native shell.
 
-- [ ] Emit all bridge events from the game: `game:ready`, `game:over`, `game:score`, `game:pause`
-- [x] `GameBridge` routes typed `onMessage` events to handlers in the app (routes `game:save`)
+- [x] Emit all bridge events from the game: `game:ready`, `game:over`, `game:score`,
+      `game:pause` / `game:resume`, `game:save`, `game:exit`
+- [x] `GameBridge` routes typed `onMessage` events to handlers in the app
+      (`save` / `exit` / `score` / `pause` / `resume`)
 - [x] Native persistence via `storageService` (AsyncStorage): the player **profile**
       (diamonds, lives, upgrades, per-level loot-taken) **+ audio prefs** — see LEVEL_DESIGN §7
 - [x] `game:save` / `game:load` round-trip through the Bridge (save event + injected hydration)
-- [ ] App → game commands via `injectedJavaScript` (e.g. pause/resume from native)
-- [ ] App state via Context API (e.g. high score) wired to the bridge events
+- [x] App → game commands via `injectedJavaScript`: `window.__kpCommand` accepts
+      `pause`/`resume`; the app sends `pause` on `AppState` background (native interrupt)
+- [x] **Auto-pause on interruption** — the game opens the pause hub when backgrounded
+      (in-WebView `HIDDEN` + native `AppState`), so the player resumes on their own terms
+- [~] App state via Context API (high score): the game emits `game:score` and the app
+      routes it, but no high-score UI — diamonds are the persisted currency, so a separate
+      score has no home in this design (revisit if a score-based mode is added)
 
-**Acceptance:** score and game-over reach the app; the high score persists across app
-restarts (AsyncStorage); pausing/resuming from native works. Verified on Android and iOS.
+**Acceptance:** score and pause/resume reach the app and the native interrupt pauses the
+game; game-over and save round-trip work. Verified on the iOS Simulator; on-device pass pending.
 
 ---
 

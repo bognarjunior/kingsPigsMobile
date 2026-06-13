@@ -4,6 +4,7 @@ export const GAME_EVENT = {
   OVER: 'game:over',
   SCORE: 'game:score',
   PAUSE: 'game:pause',
+  RESUME: 'game:resume',
   SAVE: 'game:save',
   LOAD: 'game:load',
   EXIT: 'game:exit',
