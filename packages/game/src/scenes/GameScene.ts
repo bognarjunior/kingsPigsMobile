@@ -153,6 +153,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, solidLayer)
 
     const content = levelContent(this.levelKey)
+    this.player.setInvincible(content.safe ?? false)
     this.bombSupply = this.spawnBombSupply(content.bombSupply)
     const boxes = this.spawnBoxes(content.boxes)
     this.boxSupply = this.physics.add.group({ allowGravity: false, immovable: true })

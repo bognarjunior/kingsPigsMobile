@@ -26,6 +26,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   )
   private hearts: number = this.maxHeartsCount
   private invulnerableUntil = 0
+  private invincible = false // dev/preview sandboxes: take no damage at all
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, TEXTURE_KEY.KING_IDLE, 0)
@@ -135,8 +136,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     })
   }
 
+  // a safe preview level keeps the King unkillable so enemies can be watched up close
+  setInvincible(value: boolean): void {
+    this.invincible = value
+  }
+
   takeDamage(amount: number): void {
     if (
+      this.invincible ||
       this.isDead ||
       this.inCutscene ||
       this.isAttacking ||

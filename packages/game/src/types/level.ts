@@ -105,6 +105,8 @@ export interface LevelContent {
   readonly doorWaves: readonly DoorWave[]
   // king pigs (bosses); optional per spawn
   readonly bosses: readonly KingPigSpawn[]
+  // dev/preview sandbox: the King takes no damage, so enemies can be watched up close
+  readonly safe?: boolean
 }
 
 export interface DoorWave extends EnemySpawn {
