@@ -132,7 +132,8 @@ Make it a real game loop: fight, collect, lose, retry.
 - [x] **Shop** — spend diamonds on King upgrades (max health, damage, shield, extra life); opens from
       the title menu and the in-game pause hub (LEVEL_DESIGN §4)
 - [x] **King Pig boss** — scaling, summons minion waves (LEVEL_DESIGN §10)
-- [ ] (polish) cannon's crouched match-pig sprite; box-pig configurable hatch type/tier
+- [x] (polish) cannon's crouched match-pig sprite (per-tier recoloured crouch while
+      lighting the fuse); box-pig hatch type/tier already authored via the spawn data
 
 > Full system design / decisions map lives in **[docs/LEVEL_DESIGN.md](LEVEL_DESIGN.md)**.
 

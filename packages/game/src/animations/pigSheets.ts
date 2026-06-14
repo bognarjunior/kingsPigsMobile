@@ -1,5 +1,7 @@
 import {
   ANIM,
+  MATCH_FRAMES,
+  MATCH_SPRITE,
   PIG_BOMB_FRAMES,
   PIG_BOMB_SPRITE,
   PIG_BOX_FRAMES,
@@ -25,6 +27,7 @@ export interface PigSheet {
 const PIG = { width: PIG_SPRITE.FRAME_WIDTH, height: PIG_SPRITE.FRAME_HEIGHT }
 const BOMB = { width: PIG_BOMB_SPRITE.FRAME_WIDTH, height: PIG_BOMB_SPRITE.FRAME_HEIGHT }
 const BOX = { width: PIG_BOX_SPRITE.FRAME_WIDTH, height: PIG_BOX_SPRITE.FRAME_HEIGHT }
+const MATCH = { width: MATCH_SPRITE.FRAME_WIDTH, height: MATCH_SPRITE.FRAME_HEIGHT }
 
 export const PIG_SHEETS: readonly PigSheet[] = [
   { texture: TEXTURE_KEY.PIG_IDLE, anim: ANIM_KEY.PIG_IDLE, frames: PIG_FRAMES.IDLE, fps: ANIM.IDLE_FPS, loop: true, ...PIG },
@@ -40,4 +43,10 @@ export const PIG_SHEETS: readonly PigSheet[] = [
   { texture: TEXTURE_KEY.PIG_BOX_RUN, anim: ANIM_KEY.PIG_BOX_RUN, frames: PIG_BOX_FRAMES.RUN, fps: ANIM.RUN_FPS, loop: true, ...BOX },
   { texture: TEXTURE_KEY.PIG_BOX_PICK, anim: ANIM_KEY.PIG_BOX_PICK, frames: PIG_BOX_FRAMES.PICK, fps: ANIM.ATTACK_FPS, loop: false, ...BOX },
   { texture: TEXTURE_KEY.PIG_BOX_THROW, anim: ANIM_KEY.PIG_BOX_THROW, frames: PIG_BOX_FRAMES.THROW, fps: ANIM.ATTACK_FPS, loop: false, ...BOX },
+]
+
+// the crouched match pig (lighting a cannon's fuse): carries the same recolourable
+// skin, so it gets a coloured variant per tier just like the pig poses above
+export const MATCH_SHEETS: readonly PigSheet[] = [
+  { texture: TEXTURE_KEY.MATCH_CANNON, anim: ANIM_KEY.MATCH_CANNON, frames: MATCH_FRAMES.CANNON, fps: ANIM.ATTACK_FPS, loop: false, ...MATCH },
 ]

@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 
 import { registerAnimations } from '@/animations/registerAnimations'
-import { PIG_SHEETS } from '@/animations/pigSheets'
+import { MATCH_SHEETS, PIG_SHEETS } from '@/animations/pigSheets'
 import { KING_PIG_SHEETS } from '@/animations/kingPigSheets'
 import { PIG_TIERS } from '@/constants/GameConstants'
 import { recolorSpriteSheet } from '@/systems/recolorTexture'
@@ -245,6 +245,9 @@ export class BootScene extends Phaser.Scene {
         recolorSpriteSheet(this, sheet.texture, `${sheet.texture}-${tier.name}`, sheet.width, sheet.height, tier.skin!)
       })
       KING_PIG_SHEETS.forEach((sheet) => {
+        recolorSpriteSheet(this, sheet.texture, `${sheet.texture}-${tier.name}`, sheet.width, sheet.height, tier.skin!)
+      })
+      MATCH_SHEETS.forEach((sheet) => {
         recolorSpriteSheet(this, sheet.texture, `${sheet.texture}-${tier.name}`, sheet.width, sheet.height, tier.skin!)
       })
     })

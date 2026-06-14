@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import { PIG_SHEETS } from '@/animations/pigSheets'
+import { MATCH_SHEETS, PIG_SHEETS } from '@/animations/pigSheets'
 import { KING_PIG_SHEETS } from '@/animations/kingPigSheets'
 import {
   ANIM,
@@ -59,6 +59,14 @@ export function registerAnimations(scene: Phaser.Scene): void {
     })
   })
 
+  // the crouched match pig is recoloured per tier too, so a blue pig lights with a blue crouch
+  MATCH_SHEETS.forEach((sheet) => {
+    PIG_TIERS.forEach((tier) => {
+      const suffix = tier.name ? `-${tier.name}` : ''
+      create(sheet.anim + suffix, sheet.texture + suffix, sheet.frames, sheet.fps, sheet.loop)
+    })
+  })
+
   create(ANIM_KEY.DOOR_OPENING, TEXTURE_KEY.DOOR_OPENING, DOOR_FRAMES.OPENING, ANIM.DOOR_FPS, false)
   create(ANIM_KEY.DOOR_CLOSING, TEXTURE_KEY.DOOR_CLOSING, DOOR_FRAMES.CLOSING, ANIM.DOOR_FPS, false)
 
@@ -72,7 +80,6 @@ export function registerAnimations(scene: Phaser.Scene): void {
   create(ANIM_KEY.CANNON_SHOOT, TEXTURE_KEY.CANNON_SHOOT, CANNON_FRAMES.SHOOT, CANNON.SHOOT_FPS, false)
   create(ANIM_KEY.MATCH_LIGHT, TEXTURE_KEY.MATCH_LIGHT, MATCH_FRAMES.LIGHT, ANIM.HIT_FPS, false)
   create(ANIM_KEY.MATCH_ON, TEXTURE_KEY.MATCH_ON, MATCH_FRAMES.ON, ANIM.IDLE_FPS, true)
-  create(ANIM_KEY.MATCH_CANNON, TEXTURE_KEY.MATCH_CANNON, MATCH_FRAMES.CANNON, ANIM.ATTACK_FPS, false)
 
   create(ANIM_KEY.HEART_IDLE, TEXTURE_KEY.HEART, COLLECTIBLE_FRAMES.HEART, ANIM.IDLE_FPS, true)
   create(ANIM_KEY.BIG_HEART_IDLE, TEXTURE_KEY.BIG_HEART, COLLECTIBLE_FRAMES.HEART, ANIM.IDLE_FPS, true)

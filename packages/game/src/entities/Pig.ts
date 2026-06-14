@@ -3,7 +3,7 @@ import Phaser from 'phaser'
 import { PatrolBehavior } from '@/behaviors/PatrolBehavior'
 import { StateMachine } from '@/behaviors/StateMachine'
 import { BOMB, CANNON, PIG } from '@/constants/GameConstants'
-import { SOUND_KEY } from '@/constants/keys'
+import { ANIM_KEY, SOUND_KEY } from '@/constants/keys'
 import type { Cannon } from '@/entities/Cannon'
 import { Enemy } from '@/entities/Enemy'
 import { playSfx } from '@/services/audio'
@@ -303,12 +303,14 @@ export class Pig extends Enemy {
     this.setVelocityX(0)
     this.setFlipX(cannon.x > this.x) // face the cannon to light its fuse
     this.isLighting = true
-    this.stateMachine.setState('idle')
+    this.stateMachine.setState('idle') // keep the machine in a known state behind the crouch
+    this.play(this.tierAnim(ANIM_KEY.MATCH_CANNON), true) // crouch down and strike the match
     this.scene.time.delayedCall(CANNON.LIGHT_MS, () => {
       if (!this.isLighting) {
-        return // cancelled by a hit/stomp/death mid-light
+        return // cancelled by a hit/stomp/death mid-light (which restored the pose)
       }
       this.isLighting = false
+      this.play(this.tierAnim(this.idleAnim()), true) // stand back up before firing
       if (cannon.active && cannon.canFire(this.scene.time.now)) {
         cannon.fire()
       }
