@@ -87,6 +87,7 @@ export const TEXTURE_KEY = {
 export const TILEMAP_KEY = {
   LEVEL1: 'level1',
   LEVEL2: 'level2',
+  LEVEL3: 'level3',
 } as const
 
 export const TILESET_NAME = 'terrain'
