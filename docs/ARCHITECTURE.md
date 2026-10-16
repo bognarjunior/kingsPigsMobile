@@ -87,14 +87,21 @@ Outside the WebView (e.g. the dev browser), it becomes a silent no-op.
 **app → game** direction: `GameBridge.ts` handles `onMessage` and can inject commands via
 `injectedJavaScript`.
 
-Planned events (full implementation in Phase 6):
+Implemented events (`GAME_EVENT`). The app routes `save`, `exit`, `score`, `pause`, and
+`resume` in `GameBridge`. The others are emitted and logged.
 
 | Event | Direction | When |
 |-------|-----------|------|
-| `game:ready` | game → app | game loaded and ready |
-| `game:over`  | game → app | the player died |
+| `game:ready` | game → app | game scene is up |
+| `game:level-complete` | game → app | the King finishes a level |
+| `game:over` | game → app | the player is out of lives |
 | `game:score` | game → app | score updated |
-| `game:pause` | game → app | game paused |
+| `game:pause` / `game:resume` | game → app | pause hub opens / closes |
+| `game:save` | game → app | profile or audio prefs changed |
+| `game:exit` | game → app | quit from the title menu |
+
+Load is not an event. Before boot the app injects `window.__KP_SAVE__`. Backgrounding sends
+`window.__kpCommand('pause')`. `game:load` is declared and unused.
 
 ## Phaser config (summary)
 

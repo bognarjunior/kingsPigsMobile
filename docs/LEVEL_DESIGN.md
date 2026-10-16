@@ -1,10 +1,8 @@
 # Level Design — Content Model
 
-> **Status: DRAFT for review.** This maps *how a level populates itself* — enemies, items,
-> rewards, doors — so placement stops being ad-hoc. Items marked **🔸 OPEN** still need a
-> decision before implementation. Once agreed, this becomes the source of truth and the
-> scattered registries (`LEVEL_ENEMIES`, `LEVEL_PICKUPS`, `LEVEL_BOMB_SUPPLY`) collapse into
-> a single per-level content definition.
+> **Status: implemented content model.** This maps *how a level populates itself*. The
+> per-level definition is `LevelContent` in `types/level.ts`. Items still marked **🔸 OPEN**
+> are not in the code yet.
 
 ## Guiding decisions (agreed)
 
@@ -12,25 +10,29 @@
 |-------|----------|
 | Enemies appear | **Mixed**: most are hand-placed and present at level start; a few areas trigger waves. |
 | Items come from | **Boxes only**: the King breaks crates (or a box pig throws them) and the loot pops out. No loose items. |
-| Diamonds are for | **Currency** for a shop — but the shop is **deferred**; for now diamonds just accumulate. |
+| Diamonds are for | **Currency** for the shop (title menu and in-game pause hub). |
 | Doors | King is no longer auto-pulled in; he stands in front and presses **attack** to enter (only when no pig is in attack range). Exit → next level, entry → previous level. |
 
 ---
 
 ## 1. One content definition per level
 
-Today content is spread across three registries. Proposal: a single `LevelContent` object per
-level, so everything a level contains lives in one place.
+One `LevelContent` object per level (`types/level.ts`) holds everything that lives in the room:
 
 ```ts
-// types/content.ts (sketch — for discussion)
 interface LevelContent {
-  enemies: EnemyPlacement[]   // fixed pigs present from the start
-  spawners: EnemySpawner[]    // trigger zones that release a wave once
-  boxes: BoxPlacement[]       // breakable crates holding loot
-  // doors stay in the tilemap object layer (entry_door / exit_door)
+  enemies: EnemySpawn[]
+  boxes: BoxPlacement[]
+  bombSupply: SpawnTile[]
+  cannons: CannonPlacement[]
+  boxPigs: EnemySpawn[]
+  doorWaves: DoorWave[]
+  bosses: KingPigSpawn[]
+  safe?: boolean
 }
 ```
+
+Doors stay in the tilemap object layer (`entry_door` / `exit_door`).
 
 Geometry (the room shape) stays where it is — in the tilemap / `LevelDefinition`. This file is
 only about *what lives inside* the room.
@@ -44,13 +46,9 @@ only about *what lives inside* the room.
   nearest loose ammo of **any** kind (bomb or crate), grabs it, switches to that ammo's carrying
   sprite, throws it, then re-arms. With no ammo (or when cornered) it falls back to **fists** — so
   a thrower is never harmless. Specialising one (bomb-only, box-only) is just a shorter ammo list.
-- **Triggered wave**: a rectangular zone in the level. When the King enters it the first time,
-  it spawns its list of pigs once, then disarms.
-  ```ts
-  interface EnemySpawner { zone: Rect; pigs: EnemyPlacement[]; once: true }
-  ```
-- 🔸 **OPEN** — what fires a wave: only zone-on-enter, or also "all pigs in the room dead → door
-  unlocks / next wave"? (Suggested default: **zone-on-enter, fire once**. Boss arena handled later.)
+- **Triggered wave**: a `DoorWave` (`EnemySpawn` plus `count`). A door materialises near the King,
+  releases that many pigs, then vanishes. The 3-level slice leaves `doorWaves` empty.
+- 🔸 **OPEN** — clear-room gating (door stays locked until the room is clear) is not implemented.
 
 ---
 
@@ -106,19 +104,17 @@ King walks into it to collect).
 
 ---
 
-## 4. Diamonds = currency (shop deferred)
+## 4. Diamonds = currency (shop)
 
-- Diamonds collected accumulate into a **wallet** that persists **across levels within a run**
-  (and later across sessions via the Bridge → AsyncStorage, in Phase 6).
-- They are spent in a **shop** — but the **shop is deferred**. For now diamonds only accumulate
-  and show on the HUD; the spending screen comes later.
-- 🔸 **OPEN (later) — shop catalog & frequency**: prices and whether it opens every level or only at
-  hubs. Revisit when we build the shop. Planned King upgrades to sell:
-  - **+ max health** (raise the heart cap — the only way to grow it)
-  - **+ attack damage** (King hits harder)
-  - **invulnerability** (a temporary shield / longer i-frames)
-  - **extra life** (top up the lives counter from §5)
-  - full heal / refill hearts
+- Diamonds accumulate in a **wallet** that persists across levels and sessions (Bridge → AsyncStorage).
+- The shop opens from the **title menu** (permanent upgrades only) and the **in-game pause hub**
+  (the same upgrades plus a timed shield). Prices live in `SHOP` and are placeholders.
+- Catalog on sale:
+  - **+ max health** (`PRICE_MAX_HEART`)
+  - **+ attack damage** (`PRICE_DAMAGE`)
+  - **extra life** (`PRICE_LIFE`)
+  - **shield** (`PRICE_INVULN`, in-game only, `INVULN_MS`)
+- Full heal is not sold.
 
 ---
 
@@ -133,11 +129,10 @@ Two separate resources:
   current level restarts with hearts refilled. **0 lives → game over.** Lives are earned/bought and
   **persist** (see §7).
 
-- 🔸 **OPEN — game over cost**: does game over keep the persistent profile (diamonds/upgrades) and
-  just send you back to the start/hub, or wipe the run? (Lean: keep the meta-profile; restart the
-  run. Decide when we build the death/game-over flow.)
-- 🔸 **OPEN — hearts between levels**: refill to full on each new level, or carry the current hearts
-  over? (Lean: refill to full at level start; the shop sells an extra full-heal.)
+- **Game over** keeps the diamond wallet and purchased upgrades. `resetRun()` refills lives and
+  reopens loot.
+- **Hearts between levels** refill to the current max when the level scene starts. The shop does
+  not sell a full heal.
 
 ---
 
@@ -154,18 +149,17 @@ Two separate resources:
 ## 7. Persistence (the save)
 
 A single persistent **profile** is the player's meta-progression. It survives quitting and
-reopening the game — written through the Bridge → `storageService` (AsyncStorage), per CLAUDE.md;
-the game emits `game:save` / `game:load`, the app does the I/O. (Real wiring lands with the Bridge,
-**Phase 6**; until then a run-only in-memory profile stands in and resets on reload.)
+reopening the game. The game emits `game:save`; the app stores it with `storageService`
+(AsyncStorage) and injects `window.__KP_SAVE__` before boot. `game:load` is declared but unused.
 
-The profile holds:
-- **diamonds** wallet (currency)
-- **lives** counter (§5)
-- **upgrades** bought (max hearts, attack damage, …)
-- **per-level loot taken** — which boxes are already opened / pickups collected (see §8)
-- **progress** — levels reached / unlocked
+`SaveData` holds:
+- **diamonds**
+- **lives**
+- **maxHeartBonus** and **damageBonus**
+- **takenLoot** (see §8)
+- **audio** prefs (track, mute, volume)
 
-Saved on key events (level complete, purchase, life lost); loaded on boot.
+Level unlock / progress is not in the save. Changes are debounced, then flushed when the page hides.
 
 ---
 
@@ -178,8 +172,7 @@ Levels can be re-entered (the back door), so loot must not regenerate.
   item farming by walking back and forth.
 - **Enemies reset.** Re-entering re-spawns the pigs for a fresh fight — that's fine, since beating
   them yields no currency (rewards come only from boxes).
-- Mechanically: today entering a door does `scene.restart`, which rebuilds everything. The change
-  is to **filter out already-taken loot** from `LevelContent.boxes` using the profile on build.
+- On build, a box whose loot id is already in the profile spawns **empty**.
 
 ---
 
@@ -196,12 +189,9 @@ independently, so levels can be heavy, light, **enemy-free (objects only)**, or 
 The King Pig is fought **several times**, each encounter **stronger** (higher tier / more health /
 more attacks), building to the final fight.
 
-- **Arena**: a locked room — the door **locks until the boss is beaten** (this is the "clear-room
-  gating" variant of §2's trigger). 
-- **Health bar** of its own (multi-hit), separate from the regular pigs.
-- **Summons waves**: during the fight it can trigger waves of coloured tier pigs (§2 + §2b).
-- 🔸 **OPEN**: the schedule (which levels host a boss), the boss's own moveset/attacks, its sprite
-  sheet, and how much it scales per encounter. Design these when we build the first boss.
+- **L3** hosts one King Pig (`bosses` on `LevelContent`) with its own health bar.
+- **Summons**: one wave of two pigs when health drops below half (`atHealthBelow: 0.5`).
+- 🔸 **OPEN**: the exit door does not lock until the boss dies. No boss encounters besides L3.
 
 ---
 
@@ -210,23 +200,22 @@ more attacks), building to the final fight.
 1. ~~Door rework~~ ✅ (stand-in-front + attack-to-enter, back/forward, level-1 entry door vanish).
 2. ~~Consolidate registries into `LevelContent`~~ ✅
 3. ~~Breakable boxes + loot~~ ✅ · ~~unified thrower~~ ✅ · ~~pig tiers~~ ✅
-4. **Persistence + anti-farm** (profile: diamonds/lives/upgrades + per-level loot-taken). Foundation
-   for everything below — even though the real AsyncStorage wiring waits for the Bridge (Phase 6).
-5. Lives + death/game-over flow (§5).
-6. Triggered enemy waves (zone-on-enter, §2).
-7. Shop scene (spends diamonds on §4 upgrades — catalog still open).
-8. King Pig boss — recurring & scaling (§10).
+4. ~~Persistence + anti-farm~~ ✅ (Bridge → AsyncStorage).
+5. ~~Lives + death/game-over flow~~ ✅ (§5).
+6. ~~Triggered enemy waves~~ ✅ (door waves; unused in the current slice).
+7. ~~Shop~~ ✅ (§4).
+8. ~~King Pig boss~~ ✅ on L3 (health bar + one summon). Locked arena door still open (§10).
 
 ---
 
 ## Open decisions checklist
 
-- [ ] §2 — wave trigger rule for non-boss rooms (zone-only vs. clear-room gating)
-- [ ] §4 — shop catalog, prices, and frequency — *deferred, revisit when building the shop*
-- [ ] §5 — game-over cost; hearts refill-vs-carry between levels
-- [ ] §10 — boss schedule, moveset, sprite, per-encounter scaling
+- [x] §2 — door waves (clear-room gating still open)
+- [x] §4 — shop catalog and where it opens (prices in `SHOP` are placeholders; no full heal)
+- [x] §5 — game over keeps meta-progression; hearts refill at level start
+- [ ] §10 — locked boss door; encounters beyond the L3 King Pig
 
 **Resolved:** box contents authored per box (empty / heart / diamonds); no loose items, all from
 boxes; ground boxes double as thrower ammo and break into loot; hearts only refill (never raise the
 max); max heart cap raised only via the shop. Two resources — hearts (in-level) + lives (persistent).
-Re-entry: enemies reset, loot is one-time. No fixed enemy quota per level. Boss recurs and scales.
+Re-entry: enemies reset, loot is one-time. No fixed enemy quota per level. One King Pig on L3.

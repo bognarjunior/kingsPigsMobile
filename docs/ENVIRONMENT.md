@@ -84,4 +84,5 @@ pnpm --filter app start       # 'a' = Android, 'i' = iOS Simulator
 
 ## Pending / next environment steps
 
-- Migrate from Expo Go to **EAS build** in Phase 7 (native features / stores).
+- EAS profiles already exist in `packages/app/eas.json` (`development`, `preview`, `production`).
+- Still open (Phase 7): run day to day on an EAS development build instead of Expo Go, then the store pass.

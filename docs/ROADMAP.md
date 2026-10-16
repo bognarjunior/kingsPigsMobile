@@ -14,10 +14,10 @@ only the assets it actually uses (avoids the noise of unused files).
 | 1 | Foundation (monorepo + player + WebView) | ✅ Done |
 | 2 | Animation and State Machine | ✅ Done |
 | 3 | Mobile virtual controls | ✅ Done |
-| 4 | Tilemap / playable level | ✅ Done (iOS sim; Pig + shake → Phase 5) |
-| 5 | HUD, collectibles, and progression | ✅ Core done (iOS sim); real save → Phase 6 |
+| 4 | Tilemap / playable level | ✅ Done (iOS sim) |
+| 5 | HUD, collectibles, and progression | ✅ Core done (iOS sim) |
 | 6 | Game ↔ app communication | ✅ Core done (iOS sim); high-score N/A by design; on-device pass pending |
-| 7 | Publishing | ⬜ Not started |
+| 7 | Publishing | 🚧 Icon, splash, orientation, and EAS profiles in place; store + on-device pass open |
 
 **Legend:** ⬜ not started · 🚧 in progress · ✅ done (acceptance verified on Android+iOS)
 
@@ -82,7 +82,7 @@ fullscreen. Verified on a physical Android device (APK).
 
 ---
 
-## Phase 4 — Tilemap / playable level
+## Phase 4 — Tilemap / playable level ✅
 
 Replace the placeholder ground with a real level and a following camera.
 
@@ -90,13 +90,13 @@ Replace the placeholder ground with a real level and a following camera.
 - [x] Build a level and export it (JSON) — authored via a generator script (Tiled-compatible JSON)
 - [x] Load the tilemap + tilesets in Phaser and render the layers (`background` + `solid`)
 - [x] Tile-layer collision replaces the placeholder rectangle ground
-- [x] `CameraSystem`: follow the player, set world/camera bounds — **screen shake deferred to Phase 5**
+- [x] `CameraSystem`: follow the player, set world/camera bounds — **screen shake still open** (see Content & polish)
 - [x] Spawn the Player and the doors from the map object layer (`spawns`)
 - [x] Entry/exit doors with intro/outro sequence (extra: King exits/enters, `game:level-complete`)
 
 **Scope decisions for this phase:**
 - King-only — the **Pig** (spawn + patrol from geometry) is deferred to **Phase 5** (with combat).
-- **Screen shake** is deferred to Phase 5, where combat/impacts give it a natural trigger.
+- **Screen shake** was left for combat impacts and is still not implemented.
 - Verified on the **iOS Simulator** only for now (EAS/Android build is Phase 7).
 
 **Acceptance:** a scrollable level with real tile collisions; the camera follows the King
@@ -104,15 +104,15 @@ within the map bounds; the King moves over actual geometry. Verified on the iOS 
 
 ---
 
-## Phase 5 — HUD, collectibles, and progression 🚧
+## Phase 5 — HUD, collectibles, and progression ✅
 
 Make it a real game loop: fight, collect, lose, retry.
 
-- [x] Copy + normalize the HUD/collectible assets (hearts, live bar; diamonds 🚧)
+- [x] Copy + normalize the HUD/collectible assets (hearts, live bar, diamonds)
 - [x] `CombatSystem`: the King's attack damages the Pig; the Pig can hurt the King
 - [x] Health for player/enemies; wire the `hurt`/`dead` states to real damage
 - [x] Basic Pig AI: front vision cone, chase, melee, knockback, stomp/stun, patrol pauses
-- [x] `HUD`: health bar (scalable sliced ribbon, 3→10 hearts) — diamond counter 🚧
+- [x] `HUD`: health bar (scalable sliced ribbon, 3→10 hearts) and diamond counter
 - [x] Heart pickup: heals + raises the max every 10 hearts; `LEVEL_PICKUPS` registry
 - [x] Diamond pickup + score counter on the HUD
 - [x] Heart/diamond idle animations (pulse/spin)
@@ -123,7 +123,7 @@ Make it a real game loop: fight, collect, lose, retry.
 - [x] Pig difficulty tiers — palette swap green→white→blue→red→gray, scaling HP/speed/damage; stomp = 2×;
       throwers fall back to melee when out of ammo
 - [x] Persistence + anti-farm — run profile (diamonds / lives + per-level loot-taken); loot is
-      one-time, enemies reset ([LEVEL_DESIGN](LEVEL_DESIGN.md) §7–§8). In-memory for now; real save = Phase 6.
+      one-time, enemies reset ([LEVEL_DESIGN](LEVEL_DESIGN.md) §7–§8). Persisted via the Bridge (Phase 6).
 - [x] Lives + death / game-over (hearts→lose a life→retry; 0 lives→game over) (LEVEL_DESIGN §5)
 - [x] Cannon hazard — manned by any pig; ballistic ball lands and turns into a bomb
 - [x] Box-pig ambush — crate disguised among loot; lunges once, then hatches into a real pig
@@ -150,15 +150,16 @@ Gaps that aren't tied to a single phase but are needed for a real game:
       pickup, buy) + eight selectable looping music tracks, behind an audio service.
       Music is served as external files via `file://` (kept out of the JS bundle); a
       settings panel (track / mute music+SFX / volume) opens from the menu and in-game.
-      Remaining: a door SFX, and persisting audio prefs via the Bridge.
-- [ ] **Real level design** — the current levels are **test arrangements**. Author real
-      levels (layout + balanced enemy/box/cannon placement) once the systems are stable.
+      Audio prefs persist via the Bridge. Remaining: a door SFX.
+- [ ] **Real level design** — a **3-level vertical slice** exists (tutorial, mechanics, finale).
+      Author balanced layouts once the systems are stable.
+- [ ] **Screen shake** — deferred from Phase 4; still no camera shake on impacts.
 - [x] **Menu / title screen** — title hub with PLAY / SHOP / SETTINGS, a styled audio settings
       panel, and an in-game pause hub; all share one beveled-button look. Later: a "continue".
 
 ---
 
-## Phase 6 — Game ↔ app communication
+## Phase 6 — Game ↔ app communication ✅
 
 Close the loop with the native shell.
 
@@ -182,13 +183,13 @@ game; game-over and save round-trip work. Verified on the iOS Simulator; on-devi
 
 ---
 
-## Phase 7 — Publishing
+## Phase 7 — Publishing 🚧
 
 Ship it to the stores.
 
-- [ ] App icon, splash screen, orientation, and permissions in `app.json`
+- [x] App icon, splash screen, and landscape orientation in `app.json` (no extra permissions declared)
 - [ ] Migrate from Expo Go to an **EAS** development build
-- [ ] EAS build profiles (development / preview / production)
+- [x] EAS build profiles (development / preview / production) in `eas.json`
 - [ ] Production build + on-device performance pass (real devices)
 - [ ] Store metadata, screenshots, and privacy details
 - [ ] Submit to the **App Store** and **Play Store** (EAS Submit)
