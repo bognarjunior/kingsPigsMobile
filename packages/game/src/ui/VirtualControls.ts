@@ -38,6 +38,10 @@ export class VirtualControls implements TouchInputSource {
     return this.state
   }
 
+  setVisible(visible: boolean): void {
+    this.container.style.display = visible ? '' : 'none'
+  }
+
   destroy(): void {
     this.container.remove()
   }

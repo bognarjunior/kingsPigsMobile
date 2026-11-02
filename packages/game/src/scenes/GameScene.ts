@@ -753,6 +753,7 @@ export class GameScene extends Phaser.Scene {
       onQuit: () => this.quitToMenu(),
     })
     sendToApp(GAME_EVENT.PAUSE)
+    this.syncTouchControls()
   }
 
   // abandon the current run and return to the title screen: like a game over, the run
@@ -777,6 +778,7 @@ export class GameScene extends Phaser.Scene {
     this.dismissPause()
     this.physics.resume()
     sendToApp(GAME_EVENT.RESUME)
+    this.syncTouchControls()
   }
 
   // the shop is a hard pause: freeze physics, show the overlay
@@ -794,6 +796,7 @@ export class GameScene extends Phaser.Scene {
       { label: 'SHIELD', price: SHOP.PRICE_INVULN, available: () => true, purchase: () => this.buyInvuln() },
     ]
     this.shopOverlay = new ShopOverlay(this, items, () => this.closeShop())
+    this.syncTouchControls()
   }
 
   private closeShop(): void {
@@ -804,6 +807,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.resume()
     this.shopOverlay?.destroy()
     this.shopOverlay = undefined
+    this.syncTouchControls()
   }
 
   // settings is a hard pause, like the shop: freeze physics, show the overlay
@@ -815,6 +819,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.pause()
     ;(this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0)
     this.settingsOverlay = new SettingsOverlay(this, () => this.closeSettings())
+    this.syncTouchControls()
   }
 
   private closeSettings(): void {
@@ -825,6 +830,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.resume()
     this.settingsOverlay?.destroy()
     this.settingsOverlay = undefined
+    this.syncTouchControls()
   }
 
   private buyMaxHeart(): void {
@@ -860,6 +866,11 @@ export class GameScene extends Phaser.Scene {
     this.player.grantInvulnerability(SHOP.INVULN_MS)
     this.events.emit(ENTITY_EVENT.PLAYER_DIAMONDS, runProfile.diamonds)
     this.closeShop() // close so the shield is spent in play, not in the menu
+  }
+
+  private syncTouchControls(): void {
+    const menuOpen = this.pauseOpen || this.shopOpen || this.settingsOpen
+    this.virtualControls.setVisible(!menuOpen)
   }
 
   private handleShutdown(): void {

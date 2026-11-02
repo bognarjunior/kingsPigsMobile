@@ -44,7 +44,7 @@ export class PauseOverlay {
 
     this.track(
       this.scene.add
-        .text(cx, cy - MENU_BUTTON.GAP * 2, 'PAUSED', { fontFamily: FONT_FAMILY, fontSize: '16px', color: '#ffffff' })
+        .text(cx, cy - MENU_BUTTON.GAP * 2 - MENU_BUTTON.HEIGHT / 2, 'PAUSED', { fontFamily: FONT_FAMILY, fontSize: '16px', color: '#ffffff' })
         .setOrigin(0.5)
         .setScrollFactor(0)
         .setDepth(DEPTH + 1),
